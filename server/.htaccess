@@ -1,0 +1,15 @@
+<FilesMatch "\.json$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "php-config\.php$">
+    Require all denied
+</FilesMatch>
+
+Options -Indexes
+
+# Optional runtime configuration (replace values in production)
+# SetEnv CF_TURNSTILE_SITE_KEY "your_site_key"
+# SetEnv CF_TURNSTILE_SECRET_KEY "your_secret_key"
+# SetEnv PASSWORD_TRANSFER_ALLOWED_ORIGINS "https://your-domain.example,http://localhost,http://127.0.0.1"
+# SetEnv PASSWORD_TRANSFER_MAX_AGE_SECONDS "30"

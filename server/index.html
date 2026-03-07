@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <meta name="cf-turnstile-sitekey" content="">
+    <title>Secure Password Transfer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="main-content">
+        <div class="container" id="app">
+            <h1>Loading...</h1>
+        </div>
+    </main>
+
+    <!-- Cookie banner in flow above footer so it does not overlap -->
+    <div id="cookieBannerPlaceholder"></div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>Open source — </span>
+            <a href="https://github.com/EtkaPerry/Password-Transfer" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            <span class="footer-sep">•</span>
+            <a href="#" id="licenseLink" class="footer-license" aria-haspopup="dialog">License</a>
+        </div>
+    </footer>
+    
+    <!-- Libraries -->
+    <script src="vendor/qrcode.min.js"></script>
+    <script src="vendor/html5-qrcode.min.js" type="text/javascript"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    
+    <!-- App Logic -->
+    <script src="script.js?v=3"></script>
+</body>
+</html>

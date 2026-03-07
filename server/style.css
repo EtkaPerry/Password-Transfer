@@ -1,0 +1,286 @@
+:root {
+    --bg-color: #0f172a;
+    --text-color: #f8fafc;
+    --primary-color: #f59e0b; /* yellowish orange */
+    --primary-hover: #d97706;
+    --card-bg: #1e293b;
+    --border-color: #334155;
+    --success-color: #4ade80;
+    --error-color: #f87171;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+/* Main area grows so footer stays at bottom; content centered within it */
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    background-color: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+}
+
+h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+p {
+    margin-bottom: 1.5rem;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.qrcode-wrapper {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Fullscreen QR overlay: same code, larger size for easier scanning */
+.qr-fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 1rem;
+}
+.qr-fullscreen-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+.qr-fullscreen-qr {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.qr-fullscreen-close {
+    width: auto;
+    min-width: 8rem;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    background-color: #0f172a;
+    border: 1px solid var(--border-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    resize: none;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+textarea:focus {
+    outline: 2px solid var(--primary-color);
+    border-color: transparent;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.85rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+button:disabled {
+    background-color: #475569;
+    cursor: not-allowed;
+}
+
+.password-display {
+    background-color: #0f172a;
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.password-text {
+    font-family: monospace;
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+    color: white;
+    word-break: break-all;
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    margin-top: 1rem;
+}
+
+.secondary-btn:hover {
+    background-color: rgba(245, 158, 11, 0.08);
+}
+
+.status-msg {
+    margin-top: 1.5rem;
+    font-weight: 500;
+}
+
+.success {
+    color: var(--success-color);
+}
+
+.error {
+    color: var(--error-color);
+}
+
+/* Footer stays at bottom of page, below main content and cookie banner */
+.site-footer {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    padding: 1rem;
+    margin-top: auto;
+}
+.site-footer .footer-inner {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.site-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+.site-footer a:hover {
+    text-decoration: underline;
+}
+.site-footer .footer-inner a.footer-license {
+    color: #cbd5e1;
+}
+.site-footer .footer-sep {
+    margin: 0 0.5rem;
+}
+
+/* Cookie banner in document flow above footer (no overlap) */
+#cookieBanner {
+    background: rgba(30,41,59,0.98);
+    color: #e2e8f0;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    margin: 0 0 1rem 0;
+    box-shadow: 0 6px 24px rgba(2,6,23,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+#cookieBanner p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+.cookie-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.cookie-actions button {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.9rem;
+    width: auto;
+}
+
+/* License popup: same pattern as fullscreen QR */
+.license-popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 1.5rem;
+}
+.license-popup-inner {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    max-width: 42rem;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.license-popup-title {
+    font-size: 1.25rem;
+    padding: 1rem 1.25rem;
+    margin: 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.license-popup-content {
+    padding: 1rem 1.25rem;
+    overflow: auto;
+    flex: 1;
+    min-height: 0;
+}
+.license-popup-text {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.license-popup-close {
+    width: auto;
+    min-width: 8rem;
+    align-self: center;
+    margin: 0 1.25rem 1rem 1.25rem;
+}

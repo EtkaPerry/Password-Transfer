@@ -1,0 +1,149 @@
+CUSTOM LICENSE FOR PASSWORD TRANSFER
+Copyright (c) 2026 EtkaPerry 
+
+TERMS, DEFINITIONS, AND CONDITIONS
+
+Preamble
+This Custom License for PASSWORD TRANSFER grants broad permissions (commercial use, modification, distribution, private use) while imposing strict patent protections and conditions designed to keep Standalone releases open and properly attributed. Network use (serving the software to users) is considered distribution only for Standalone works, explicitly excluding Greater Applications and Larger Works.
+
+1.0 Definitions
+
+1.1 "Greater Application"
+A software product or service that includes PASSWORD TRANSFER as one component among many, where PASSWORD TRANSFER is not the primary functionality marketed or provided to end users.
+
+1.2 "Implemented"
+The act of incorporating PASSWORD TRANSFER source code or compiled artifacts into another codebase or runtime environment, including linking, bundling, packaging, or embedding.
+
+1.3 "Integrated"
+A form of implementation where PASSWORD TRANSFER is combined with the host application's user interface, workflows, or build system such that it functions as part of the larger application.
+
+1.4 "Standalone"
+A product or service whose primary functionality, marketed purpose, or user-facing capability is substantially provided by PASSWORD TRANSFER or by code derived from it. A work is considered Standalone when its core purpose, architecture, or user-facing functionality substantially derives from PASSWORD TRANSFER.
+
+1.5 "Derivative Work"
+As defined under applicable copyright law, including any work based upon or derived from the PASSWORD TRANSFER source code, including modifications, translations, extensions, or adaptations.
+
+1.6 "Larger Work"
+A combined distribution containing PASSWORD TRANSFER together with other separate and independent works. If PASSWORD TRANSFER could be removed from the Larger Work and the Larger Work would still be functional and useful, it is considered part of a Larger Work.
+
+1.7 "Distribution"
+Any transfer, publication, granting of access, or making available the software or its functionality to third parties.
+
+1.8 "Source Code"
+The preferred form for making modifications to the program, including build scripts and documentation necessary to produce and run the work.
+
+1.9 "Project Name and Trademarks"
+The project name "PASSWORD TRANSFER" and any logos, service marks, or trade names associated with the project.
+
+2.0 Permissions
+
+Subject to the conditions in this license, you are granted the following rights:
+
+2.1 Commercial Use
+You may use this software for commercial purposes.
+
+2.2 Modification
+You may modify the source code.
+
+2.3 Distribution
+You may distribute copies of the software or derivative works, subject to the conditions described in this license.
+
+2.4 Private Use
+You may use the software privately without restriction.
+
+3.0 Patent Restrictions and Protections
+
+3.1 Broad Patent Grant
+Contributors grant you a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the software.
+
+3.2 Prohibition on Patenting
+You may not patent this software, its core logic, or its exact functionality. If you file or obtain a patent that claims ownership over the original PASSWORD TRANSFER codebase or its express functionality, all rights granted to you under this license terminate immediately.
+
+3.3 Universal Patent Retaliation
+You may not sue the creator, contributors, or any user of this software for patent infringement related to this project. If you institute patent litigation against any entity (including a cross-claim or counterclaim) alleging that this software, or any system using this code, constitutes direct or contributory patent infringement, your rights under this license terminate immediately and permanently.
+
+4.0 Integration vs Standalone Release — Conditions
+
+4.1 Greater Application and Larger Work Integration (Exemptions)
+If PASSWORD TRANSFER is implemented or integrated into a Greater Application or Larger Work, you must provide attribution in a reasonable place in the source or packaging.
+
+Examples include:
+• a NOTICE file
+• a credits file
+• a comment in source code headers
+
+Example Inline attribution:
+Portions derived from PASSWORD TRANSFER — https://github.com/EtkaPerry/Password-Transfer
+
+When PASSWORD TRANSFER is used only as a component of a Greater Application or Larger Work, the source code of the larger application is not required to be disclosed under this license. Network access to a Greater Application or Larger Work does not trigger any source disclosure requirements.
+
+4.2 Standalone or Primary-Value Releases
+If PASSWORD TRANSFER or a Derivative Work based primarily on it is released as a Standalone product or service, the distributor must comply with the conditions in Section 5.0.
+
+4.3 Trademarks, Name Use, and Forks
+This license does not grant any rights to use the Project Name and Trademarks. Use of the project name, logos, or other trademarks requires separate written permission from the rights holder. If you fork the project, you must:
+• clearly indicate they are derived from PASSWORD TRANSFER
+• use a distinct project name
+• avoid implying endorsement by the original project
+
+5.0 Conditions for Standalone Distribution or Primary Services
+
+When distributing modified versions, standalone products, or providing networked access where PASSWORD TRANSFER is the Standalone primary functionality, the following conditions apply:
+
+5.1 License and Copyright Notice
+You must include a copy of this license and the original copyright notice with the distribution.
+
+5.2 Disclose Source
+You must make the complete Source Code for the Standalone product and any modifications available to recipients under either:
+• this Custom License, or
+• the GNU Affero General Public License v3.0 (AGPLv3)
+
+Source Code must be provided through a publicly accessible repository or direct download link available to recipients without requiring manual approval or barriers.
+
+5.3 Network Use Trigger (Standalone Only)
+Providing access to a Standalone service over a network is considered Distribution. This provision specifically applies only to Standalone products and explicitly does not apply to Greater Applications or Larger Works.
+
+6.0 Permissible Licenses for Downstream Releases
+
+When releasing a modified Standalone product or a Derivative Work, you may distribute that work under either this Custom License or the GNU Affero General Public License v3.0 (AGPLv3). If you choose to distribute a Derivative Work under the AGPLv3, the terms of the AGPLv3 shall entirely supersede the conditions of this Custom License for that specific distribution.
+
+7.0 Attribution and Source Markers
+
+When code from PASSWORD TRANSFER is copied into another codebase, include a brief source marker near the top of the file or in a prominent location indicating the origin.
+
+Example:
+// Portions derived from PASSWORD TRANSFER — https://github.com/EtkaPerry/Password-Transfer
+
+8.0 Code Contributions and Control
+
+If you submit code, bug fixes, or modifications (such as a Pull Request) to PASSWORD TRANSFER, you agree to the following terms:
+
+Unlimited Permission: You keep the original copyright to your specific lines of code, but you grant the repository owner a perpetual, worldwide, irrevocable, and royalty-free license to use, modify, commercially exploit, and re-license your contribution under any terms they choose.
+
+Absolute Control: The repository owner has the exclusive right to decide how the project is run, what code is merged, and how the entire project is licensed or sold.
+
+No Trademark or Naming Rights: Contributing code does not give you any rights, ownership, or claim over the project name, brand, or trademarks.
+
+No Take-Backs: To the maximum extent permitted by applicable law, this agreement is permanent. Once you submit your code, you waive any right to revoke this permission or demand your code be removed.
+
+9.0 No Warranty
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+10.0 No Liability
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+11.0 Automatic Termination Upon Violation
+
+Your rights under this license terminate automatically if you materially breach its terms. If the breach is capable of being corrected, your rights may be reinstated only if the violation is cured immediately upon receiving written notice from a copyright holder.
+
+12.0 Miscellaneous
+
+If any provision of this license is found unenforceable, the remainder of the license remains in effect. This license grants rights under copyright and patents only as described above and does not grant any trademark rights.
+
+13.0 Changes to the License
+
+The repository owner reserves the right to update, modify, or change the terms of this license for future versions of the software. Any new license terms will only apply to subsequent releases, commits, or downloads from the official repository. Copies of the software legally obtained under this specific version of the license remain permanently subject to these exact terms, ensuring that your existing rights and deployments are not retroactively revoked or disrupted.
+
+END OF LICENSE
