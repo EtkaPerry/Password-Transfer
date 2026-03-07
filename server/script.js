@@ -4,8 +4,12 @@ var apiUrl = (window.location.hostname === 'localhost' || window.location.hostna
     : 'api.php';
 
 var appRuntimeConfig = {
-    turnstileSiteKey: ''
+    turnstileSiteKey: '',
+    turnstileEnabled: null,
+    loaded: false
 };
+
+var runtimeConfigPromise = null;
 
 // Generate Cryptographically Secure ID
 function generateId(length) {
@@ -60,6 +64,16 @@ async function decryptData(encryptedBase64, keyHex) {
 
 // Parse URL Fragment Hash for Session & Key
 function parseHash() {
+    // Some phone camera apps remove URL fragments when opening links from QR codes.
+    // Support both hash (#session=...) and query string (?session=...)
+    var searchParams = new URLSearchParams(window.location.search);
+    var session = searchParams.get('session');
+    var key = searchParams.get('key');
+
+    if (session && key) {
+        return { session: session, key: key };
+    }
+
     var hash = window.location.hash.substring(1);
     var params = new URLSearchParams(hash);
     return {
@@ -78,24 +92,112 @@ function getTurnstileSiteKey() {
     return (meta.getAttribute('content') || '').trim();
 }
 
-async function loadRuntimeConfig() {
-    try {
-        var response = await fetch(apiUrl + '?action=config');
-        if (!response.ok) return;
+function isTurnstileEnabledForClient() {
+    if (typeof appRuntimeConfig.turnstileEnabled === 'boolean') {
+        return appRuntimeConfig.turnstileEnabled;
+    }
 
-        var payload = await response.json();
-        if (payload && typeof payload.turnstileSiteKey === 'string') {
-            appRuntimeConfig.turnstileSiteKey = payload.turnstileSiteKey.trim();
+    return getTurnstileSiteKey() !== '';
+}
+
+async function loadRuntimeConfig() {
+    if (runtimeConfigPromise) {
+        return runtimeConfigPromise;
+    }
+
+    runtimeConfigPromise = (async function () {
+        try {
+            var response = await fetch(apiUrl + '?action=config');
+            if (!response.ok) return appRuntimeConfig;
+
+            var payload = await response.json();
+            if (payload && typeof payload.turnstileSiteKey === 'string') {
+                appRuntimeConfig.turnstileSiteKey = payload.turnstileSiteKey.trim();
+            }
+            if (payload && typeof payload.turnstileEnabled === 'boolean') {
+                appRuntimeConfig.turnstileEnabled = payload.turnstileEnabled;
+            }
+        } catch (e) {
+            console.warn('Runtime config not loaded:', e);
+        } finally {
+            appRuntimeConfig.loaded = true;
         }
-    } catch (e) {
-        console.warn('Runtime config not loaded:', e);
+
+        return appRuntimeConfig;
+    })();
+
+    return runtimeConfigPromise;
+}
+
+async function ensureRuntimeConfigLoaded() {
+    if (appRuntimeConfig.loaded) {
+        return appRuntimeConfig;
+    }
+
+    return loadRuntimeConfig();
+}
+
+function waitForTurnstileApi(timeoutMs) {
+    return new Promise(function (resolve) {
+        if (window.turnstile && typeof window.turnstile.render === 'function') {
+            resolve(true);
+            return;
+        }
+
+        var startTime = Date.now();
+        var timer = window.setInterval(function () {
+            if (window.turnstile && typeof window.turnstile.render === 'function') {
+                window.clearInterval(timer);
+                resolve(true);
+                return;
+            }
+
+            if ((Date.now() - startTime) >= timeoutMs) {
+                window.clearInterval(timer);
+                resolve(false);
+            }
+        }, 100);
+    });
+}
+
+async function verifyReceiverSession(session, challengeToken) {
+    if (!isTurnstileEnabledForClient()) {
+        return;
+    }
+
+    if (!challengeToken) {
+        throw new Error('Security check did not complete. Please try again.');
+    }
+
+    var formData = new URLSearchParams();
+    formData.append('session', session);
+    formData.append('cf_token', challengeToken);
+
+    var response = await fetch(apiUrl + '?action=verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    });
+
+    var result = await response.json().catch(function () {
+        return null;
+    });
+
+    if (!response.ok || !result || !result.success) {
+        throw new Error(result && result.error ? result.error : 'Unable to verify the secure session.');
     }
 }
 
-function showReceiverChallenge(container, onVerified) {
+async function showReceiverChallenge(container, onVerified) {
     var siteKey = getTurnstileSiteKey();
+    var turnstileRequired = isTurnstileEnabledForClient();
 
     if (!siteKey) {
+        if (turnstileRequired) {
+            showError(container, 'Cloudflare Turnstile is enabled but the site key is missing.');
+            return;
+        }
+
         onVerified();
         return;
     }
@@ -113,13 +215,13 @@ function showReceiverChallenge(container, onVerified) {
         });
     }
 
-    if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+    var turnstileReady = await waitForTurnstileApi(5000);
+    if (!turnstileReady) {
         var fallbackStatus = document.getElementById('challengeStatus');
         if (fallbackStatus) {
             fallbackStatus.className = 'status-msg error';
-            fallbackStatus.innerText = 'Security check unavailable. Continuing without challenge.';
+            fallbackStatus.innerText = 'Security check unavailable. Please try again in a moment.';
         }
-        setTimeout(onVerified, 800);
         return;
     }
 
@@ -149,6 +251,13 @@ function showReceiverChallenge(container, onVerified) {
 function startApp() {
     var container = document.getElementById('app');
     
+    // Check if we arrived via a scanned QR code (direct to Giver mode)
+    var hashInfo = parseHash();
+    if (hashInfo.session && hashInfo.key) {
+        renderGiverOptions(container, hashInfo.session, hashInfo.key);
+        return;
+    }
+
     // Initial Choice Screen
     container.innerHTML = '<h1>Password Transfer</h1>\n'
         + '<p>Select your role below to get started.</p>\n'
@@ -164,7 +273,7 @@ function startApp() {
     });
 }
 
-function renderGiverOptions(container) {
+function renderGiverOptions(container, prefilledSession, prefilledKey) {
     container.innerHTML = '<h1>What to Send?</h1>\n'
         + '<p>Select the type of data you want to send.</p>\n'
         + '<button id="btnSendText" style="margin-bottom: 0.5rem;">1. Long Text</button>\n'
@@ -172,14 +281,19 @@ function renderGiverOptions(container) {
         + '<button id="btnBackToRole" class="secondary-btn" style="margin-top: 1.5rem;">Back</button>\n';
 
     document.getElementById('btnSendText').addEventListener('click', function() {
-        renderGiverInput(container, 'text');
+        renderGiverInput(container, 'text', prefilledSession, prefilledKey);
     });
 
     document.getElementById('btnSendPwd').addEventListener('click', function() {
-        renderGiverInput(container, 'password');
+        renderGiverInput(container, 'password', prefilledSession, prefilledKey);
     });
 
     document.getElementById('btnBackToRole').addEventListener('click', function () {
+        if (prefilledSession || prefilledKey) {
+            // Clear hash so we can return to regular home screen
+            try { history.replaceState(null, '', window.location.pathname + window.location.search); } 
+            catch(e) { window.location.hash = ''; }
+        }
         startApp();
     });
 }
@@ -187,14 +301,19 @@ function renderGiverOptions(container) {
 // ==========================================
 // GIVER MODE (e.g., Mobile Phone)
 // ==========================================
-function renderGiverInput(container, type) {
+function renderGiverInput(container, type, prefilledSession, prefilledKey) {
     var title = type === 'text' ? 'Enter Text' : 'Enter Password';
     var placeholder = type === 'text' ? 'Enter / Paste your long text here...' : 'Enter / Paste password here...';
+    var nextLabel = (prefilledSession && prefilledKey) ? 'Send Securely' : 'Next: Scan PC';
+
+    var inputHtml = type === 'password'
+        ? '<input type="password" id="dataInput" placeholder="' + placeholder + '">\n'
+        : '<textarea id="dataInput" placeholder="' + placeholder + '"></textarea>\n';
 
     container.innerHTML = '<h1>' + title + '</h1>\n'
         + '<p>Paste the content you want to send.</p>\n'
-        + '<textarea id="dataInput" placeholder="' + placeholder + '"></textarea>\n'
-        + '<button id="nextBtn">Next: Scan PC</button>\n'
+        + inputHtml
+        + '<button id="nextBtn">' + nextLabel + '</button>\n'
         + '<button id="btnBackToGiverOptions" class="secondary-btn" style="margin-top: 1rem;">Back</button>\n';
 
     document.getElementById('nextBtn').addEventListener('click', function () {
@@ -203,11 +322,16 @@ function renderGiverInput(container, type) {
             alert('Please enter ' + (type === 'text' ? 'some text' : 'a password'));
             return;
         }
-        renderGiverCamera(container, val, type);
+        
+        if (prefilledSession && prefilledKey) {
+            sendDataToBackend(container, val, type, prefilledSession, prefilledKey);
+        } else {
+            renderGiverCamera(container, val, type);
+        }
     });
 
     document.getElementById('btnBackToGiverOptions').addEventListener('click', function () {
-        renderGiverOptions(document.getElementById('app'));
+        renderGiverOptions(document.getElementById('app'), prefilledSession, prefilledKey);
     });
 }
 
@@ -348,20 +472,32 @@ function sendDataToBackend(container, dataVal, dataType, session, key) {
                 status.className = 'status-msg success';
                 status.innerText = 'Sent successfully! It will self-destruct from server. You can close this page.';
                 
-                setTimeout(startApp, 10000); // Return to home after 10s
-            } else {
-                var msg = (result && result.error) ? result.error : ('Server rejected the request' + (rawText ? (': ' + rawText.substring(0, 300)) : ''));
-                throw new Error(msg);
-            }
-        } catch (e) {
-            status.className = 'status-msg error';
-            status.innerText = 'Error: ' + e.message;
-            var retryBtn = document.createElement('button');
-            retryBtn.innerText = 'Try Again';
-            retryBtn.style.marginTop = '1rem';
-            retryBtn.onclick = function() { renderGiverCamera(container, dataVal, dataType); };
-            status.parentNode.appendChild(retryBtn);
+                try { history.replaceState(null, '', window.location.pathname + window.location.search); } 
+                catch(e) { window.location.hash = ''; }
+
+                setTimeout(function() {
+                    startApp();
+                }, 10000); // Return to home after 10s
+        } else {
+            var msg = (result && result.error) ? result.error : ('Server rejected the request' + (rawText ? (': ' + rawText.substring(0, 300)) : ''));
+            throw new Error(msg);
         }
+    } catch (e) {
+        status.className = 'status-msg error';
+        status.innerText = 'Error: ' + e.message;
+        var retryBtn = document.createElement('button');
+        retryBtn.innerText = 'Try Again';
+        retryBtn.style.marginTop = '1rem';
+        retryBtn.onclick = function() {
+            var hashInfo = parseHash();
+            if (hashInfo.session && hashInfo.key) {
+                sendDataToBackend(container, dataVal, dataType, hashInfo.session, hashInfo.key);
+            } else {
+                renderGiverCamera(container, dataVal, dataType);
+            }
+        };
+        status.parentNode.appendChild(retryBtn);
+    }
     })();
 }
 
@@ -369,56 +505,109 @@ function sendDataToBackend(container, dataVal, dataType, session, key) {
 // RECEIVER MODE (e.g., Computer Screen)
 // ==========================================
 function renderReceiver(container) {
-    showReceiverChallenge(container, function (challengeToken) {
-        startReceiverSession(container, challengeToken || '');
-    });
+    container.innerHTML = '<h1>Receive Data</h1>\n'
+        + '<p>Preparing a secure session...</p>\n'
+        + '<p id="challengeStatus" class="status-msg"></p>\n';
+
+    ensureRuntimeConfigLoaded()
+        .then(function () {
+            return showReceiverChallenge(container, function (challengeToken) {
+                startReceiverSession(container, challengeToken || '');
+            });
+        })
+        .catch(function (e) {
+            showError(container, e && e.message ? e.message : 'Unable to initialize the secure session.');
+        });
 }
 
-function startReceiverSession(container, challengeToken) {
+async function startReceiverSession(container, challengeToken) {
     var session = generateId(16);
-    var key = generateId(32);
+    var defaultKey = generateId(32);
+    var validKeys = [defaultKey];
+    var currentScanUrl = '';
 
-    // Generates the secret link
-    var url = new URL(window.location.href);
-    url.hash = 'session=' + session + '&key=' + key;
-    var scanUrl = url.href;
+    container.innerHTML = '<h1>Receive Data</h1>\n'
+        + '<p>Verifying your secure session...</p>\n'
+        + '<p id="challengeStatus" class="status-msg"></p>\n';
+
+    try {
+        await verifyReceiverSession(session, challengeToken);
+    } catch (e) {
+        showError(container, e && e.message ? e.message : 'Unable to verify the secure session.');
+        return;
+    }
 
     container.innerHTML = '<h1>Receive Data</h1>\n'
         + '<p>Scan this QR code with your phone to securely send a password or text.</p>\n'
         + '<div class="qrcode-wrapper" id="qrcode"></div>\n'
+        + '<p style="font-size: 0.8rem; color: #64748b; margin: 0.5rem 0 1rem 0;">QR Code auto-updates for security</p>\n'
         + '<button id="enlargeQrBtn" class="secondary-btn" type="button">Enlarge QR</button>\n'
         + '<p>Waiting for connection...</p>\n'
         + '<button id="backBtn" class="secondary-btn" style="margin-top:1rem;">Back</button>\n';
 
-    // Render QR Code based on secret link
-    new QRCode(document.getElementById('qrcode'), {
-        text: scanUrl,
-        width: 220,
-        height: 220,
-        colorDark: '#0f172a',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+    // Reference holders for cleanup
+    var qrcodeEl = document.getElementById('qrcode');
+    var pollingInterval = null;
+    var keyRotationInterval = null;
+    var expireTimeout = null;
+
+    function renderActiveQrCode() {
+        var url = new URL(window.location.href);
+        url.hash = 'session=' + session + '&key=' + validKeys[0];
+        currentScanUrl = url.href;
+
+        if (qrcodeEl) {
+            qrcodeEl.innerHTML = '';
+            new QRCode(qrcodeEl, {
+                text: currentScanUrl,
+                width: 220,
+                height: 220,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        var fsQr = document.getElementById('qrFullscreenQrContainer');
+        if (fsQr) {
+            fsQr.innerHTML = '';
+            var maxSide = Math.min(window.innerWidth, window.innerHeight);
+            var size = Math.max(320, Math.floor(maxSide * 0.82));
+            new QRCode(fsQr, {
+                text: currentScanUrl,
+                width: size,
+                height: size,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    }
+
+    renderActiveQrCode();
+
+    keyRotationInterval = setInterval(function() {
+        validKeys.unshift(generateId(32));
+        if (validKeys.length > 3) {
+            validKeys.pop(); // keep last ~30 seconds worth of keys
+        }
+        renderActiveQrCode();
+    }, 10000);
 
     // Enlarge QR opens fullscreen overlay with same code for easier scanning
     var enlargeBtn = document.getElementById('enlargeQrBtn');
     if (enlargeBtn) {
         enlargeBtn.addEventListener('click', function () {
-            showQrFullscreen(scanUrl);
+            showQrFullscreen(currentScanUrl);
         });
     }
-
-    // Reference holders for cleanup
-    var qrcodeEl = document.getElementById('qrcode');
-    var pollingInterval = null;
-    var expireTimeout = null;
-    var challengeTokenUsed = false;
 
     // Back button: clear timers and return to home
     var backBtn = document.getElementById('backBtn');
     if (backBtn) {
         backBtn.addEventListener('click', function () {
             try { if (pollingInterval) clearInterval(pollingInterval); } catch (e) { console.warn(e); }
+            try { if (keyRotationInterval) clearInterval(keyRotationInterval); } catch (e) { console.warn(e); }
             try { if (expireTimeout) clearTimeout(expireTimeout); } catch (e) { console.warn(e); }
             try { if (qrcodeEl) qrcodeEl.innerHTML = ''; } catch (e) { console.warn(e); }
             startApp();
@@ -428,29 +617,40 @@ function startReceiverSession(container, challengeToken) {
     // Start Polling for Encrypted Data from Phone
     pollingInterval = setInterval(async function () {
         try {
-            var checkUrl = apiUrl + '?action=check&session=' + session;
-            if (!challengeTokenUsed && challengeToken) {
-                checkUrl += '&cf_token=' + encodeURIComponent(challengeToken);
-            }
-
-            var response = await fetch(checkUrl);
+            var response = await fetch(apiUrl + '?action=check&session=' + session);
             var result = await response.json();
 
             if (!response.ok) {
                 clearInterval(pollingInterval);
+                try { if (keyRotationInterval) clearInterval(keyRotationInterval); } catch (e) {}
                 var errMsg = (result && result.error) ? result.error : 'Session verification failed.';
                 showError(container, errMsg);
                 return;
             }
 
-            challengeTokenUsed = true;
-
             if (result && result.status === 'found') {
                 clearInterval(pollingInterval);
+                // If the QR is shown in fullscreen, close it so decrypted data is visible
+                try {
+                    var overlay = document.getElementById('qrFullscreenOverlay');
+                    if (overlay) overlay.remove();
+                } catch (e) { /* ignore */ }
+                try { if (keyRotationInterval) clearInterval(keyRotationInterval); } catch (e) {}
                 var encryptedData = result.data;
 
-                // Local Decryption
-                var decryptedValue = await decryptData(encryptedData, key);
+                // Local Decryption - Try all valid keys
+                var decryptedValue = null;
+                for (var i = 0; i < validKeys.length; i++) {
+                    try {
+                        var attempt = await decryptData(encryptedData, validKeys[i]);
+                        if (attempt) {
+                            decryptedValue = attempt;
+                            break;
+                        }
+                    } catch (err) {
+                        // Ignore and try the next valid key
+                    }
+                }
 
                 // Show Decrypted Result
                 if (decryptedValue) {
@@ -466,7 +666,7 @@ function startReceiverSession(container, challengeToken) {
                          showDecryptedData(container, decryptedValue, 'password');
                     }
                 } else {
-                    showError(container, 'Could not decrypt data. Malformed code?');
+                    showError(container, 'Could not decrypt data. Malformed code or expired session?');
                 }
             }
         } catch (e) {
@@ -477,6 +677,7 @@ function startReceiverSession(container, challengeToken) {
     // Session expires after 5 minutes if no one scans
     expireTimeout = setTimeout(function () {
         try { clearInterval(pollingInterval); } catch (e) { console.warn(e); }
+        try { clearInterval(keyRotationInterval); } catch (e) { console.warn(e); }
         if (document.getElementById('qrcode')) {
             showError(container, 'Session timed out after 5 minutes.');
         }
@@ -722,9 +923,9 @@ function initLicensePopup() {
 
 // Start execution
 window.addEventListener('DOMContentLoaded', function () {
+    loadRuntimeConfig();
     startApp();
     initCookieBanner();
-    loadRuntimeConfig();
     initLicensePopup();
 });
 

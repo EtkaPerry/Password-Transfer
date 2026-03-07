@@ -10,6 +10,28 @@ header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 
+function ensureStorageDirectory($dir) {
+    if (!is_dir($dir)) {
+        mkdir($dir, 0700, true);
+    }
+
+    $htaccessFile = $dir . DIRECTORY_SEPARATOR . '.htaccess';
+    if (!file_exists($htaccessFile)) {
+        $denyRules = <<<'HTACCESS'
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>
+
+Options -Indexes
+HTACCESS;
+
+        @file_put_contents($htaccessFile, $denyRules . PHP_EOL, LOCK_EX);
+    }
+}
+
 $action = $_GET['action'] ?? '';
 
 // Prefer non-web-accessible storage. Can be overridden with PASSWORD_TRANSFER_DATA_DIR.
@@ -18,19 +40,13 @@ $dataDir = $configuredDataDir
     ? rtrim($configuredDataDir, DIRECTORY_SEPARATOR)
     : rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'password-transfer-data';
 
-if (!is_dir($dataDir)) {
-    mkdir($dataDir, 0700, true);
-}
+ensureStorageDirectory($dataDir);
 
 $rateLimitDir = $dataDir . DIRECTORY_SEPARATOR . 'rate-limit';
-if (!is_dir($rateLimitDir)) {
-    mkdir($rateLimitDir, 0700, true);
-}
+ensureStorageDirectory($rateLimitDir);
 
 $verifiedDir = $dataDir . DIRECTORY_SEPARATOR . 'verified';
-if (!is_dir($verifiedDir)) {
-    mkdir($verifiedDir, 0700, true);
-}
+ensureStorageDirectory($verifiedDir);
 
 // Cleanup script - randomly purges old sessions avoiding heavy disk IO for every request
 // There's a 1-in-10 chance per request to run full cleanup of leftover un-fetched passwords
@@ -199,6 +215,41 @@ function isRateLimited($bucket, $limit, $windowSeconds, $rateLimitDir) {
     return $state['count'] > $limit;
 }
 
+if ($action === 'verify') {
+    $ip = getClientIp();
+    if (isRateLimited('verify-' . $ip, CHECK_RATE_LIMIT_COUNT, CHECK_RATE_LIMIT_WINDOW_SECONDS, $rateLimitDir)) {
+        echo json_encode(['error' => 'Too many requests. Please try again shortly.']);
+        http_response_code(429);
+        exit;
+    }
+
+    $session = sanitizeSession($_POST['session'] ?? '');
+    $token = $_POST['cf_token'] ?? '';
+
+    if (empty($session)) {
+        echo json_encode(['error' => 'Missing session parameter']);
+        http_response_code(400);
+        exit;
+    }
+
+    if (strlen($session) !== 32) {
+        echo json_encode(['error' => 'Invalid session parameter']);
+        http_response_code(400);
+        exit;
+    }
+
+    $verification = verifyTurnstileToken($token, $ip);
+    if (!$verification['success']) {
+        echo json_encode(['error' => $verification['error'] ?? 'Cloudflare challenge verification failed']);
+        http_response_code(403);
+        exit;
+    }
+
+    markSessionVerified($session, $verifiedDir);
+    echo json_encode(['success' => true]);
+    exit;
+}
+
 if ($action === 'store') {
     $ip = getClientIp();
     if (isRateLimited('store-' . $ip, STORE_RATE_LIMIT_COUNT, STORE_RATE_LIMIT_WINDOW_SECONDS, $rateLimitDir)) {
@@ -274,17 +325,6 @@ if ($action === 'check') {
         exit;
     }
 
-    if (isTurnstileEnabled() && !isSessionVerified($session, $verifiedDir)) {
-        $token = $_GET['cf_token'] ?? '';
-        $verification = verifyTurnstileToken($token, $ip);
-        if (!$verification['success']) {
-            echo json_encode(['error' => $verification['error'] ?? 'Cloudflare challenge verification failed']);
-            http_response_code(403);
-            exit;
-        }
-        markSessionVerified($session, $verifiedDir);
-    }
-    
     $file = $dataDir . '/' . $session . '.json';
     
     if (file_exists($file)) {
@@ -301,6 +341,23 @@ if ($action === 'check') {
         } else {
             // Already expired
             echo json_encode(['status' => 'waiting']); // Treat it as empty
+            exit;
+        }
+    }
+
+    if (isTurnstileEnabled() && !isSessionVerified($session, $verifiedDir)) {
+        $token = trim((string)($_GET['cf_token'] ?? ''));
+        if ($token !== '') {
+            $verification = verifyTurnstileToken($token, $ip);
+            if (!$verification['success']) {
+                echo json_encode(['error' => $verification['error'] ?? 'Cloudflare challenge verification failed']);
+                http_response_code(403);
+                exit;
+            }
+            markSessionVerified($session, $verifiedDir);
+        } else {
+            echo json_encode(['error' => 'Session not verified by Cloudflare challenge']);
+            http_response_code(403);
             exit;
         }
     }

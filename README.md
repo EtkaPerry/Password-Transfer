@@ -23,6 +23,8 @@ Recommended:
 - `PASSWORD_TRANSFER_MAX_AGE_SECONDS`
 - `PASSWORD_TRANSFER_MAX_DATA_BYTES`
 
+If `PASSWORD_TRANSFER_DATA_DIR` points to a location under the web root on Apache, the backend will automatically create a local `.htaccess` file that denies direct HTTP access to that storage directory and its subdirectories. This is a fallback only; storing data outside the web root is still preferred.
+
 Optional rate-limit and cleanup tuning:
 
 - `PASSWORD_TRANSFER_STORE_RATE_LIMIT_COUNT`
