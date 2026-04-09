@@ -57,6 +57,8 @@ This project uses the following JavaScript libraries (included in `web/vendor/`)
 
 Repository: [https://github.com/EtkaPerry/Password-Transfer](https://github.com/EtkaPerry/Password-Transfer)
 
+> **Note:** This public repository is an automated mirror of a private repository. All commits and updates are synced automatically via a `@github-actions[bot]`. While the bot may appear as the primary contributor in the commit history, all development and code ownership belong to the repository owner.
+
 ## License
 
 This project is licensed under a **Custom License**. It allows commercial use, modification, distribution, and private use, but includes specific conditions for attribution, patent protection, and source disclosure for standalone or hosted primary-value services.
