@@ -287,3 +287,122 @@ button:disabled {
     align-self: center;
     margin: 0 1.25rem 1rem 1.25rem;
 }
+
+/* Image Gallery Layout */
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.image-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.5);
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.image-card img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.image-card img:hover {
+    transform: scale(1.02);
+}
+
+.image-actions {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.image-actions button {
+    flex: 1;
+    min-width: 0;
+    padding: 0.4rem 0;
+    font-size: 0.8rem;
+    margin: 0 !important; /* override secondary-btn margin */
+}
+
+/* Image Fullscreen Viewer */
+.image-fullscreen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 2rem;
+}
+
+.image-fullscreen-controls {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    z-index: 10001;
+}
+
+.image-fullscreen-download {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.image-fullscreen-download:hover {
+    background: var(--primary-hover);
+}
+
+.image-fullscreen-close {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    line-height: 1;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    aspect-ratio: 1 / 1;
+}
+
+.image-fullscreen-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.image-fullscreen-img {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    object-fit: contain;
+}

@@ -40,10 +40,18 @@ async function encryptData(plaintext, keyHex) {
         cryptoKey,
         new TextEncoder().encode(plaintext)
     );
+    
+    // Efficiently convert Uint8Array (iv + ciphertext) to base64
     var combined = new Uint8Array(iv.length + ciphertext.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(ciphertext), iv.length);
-    return btoa(String.fromCharCode.apply(null, combined));
+
+    var binString = '';
+    var len = combined.byteLength;
+    for (var i = 0; i < len; i++) {
+        binString += String.fromCharCode(combined[i]);
+    }
+    return btoa(binString);
 }
 
 async function decryptData(encryptedBase64, keyHex) {
@@ -51,7 +59,14 @@ async function decryptData(encryptedBase64, keyHex) {
     var cryptoKey = await crypto.subtle.importKey(
         'raw', keyBytes, { name: 'AES-GCM' }, false, ['decrypt']
     );
-    var combined = Uint8Array.from(atob(encryptedBase64), function (c) { return c.charCodeAt(0); });
+    
+    var binary_string = window.atob(encryptedBase64);
+    var len = binary_string.length;
+    var combined = new Uint8Array(len);
+    for (var i = 0; i < len; i++) {
+        combined[i] = binary_string.charCodeAt(i);
+    }
+
     var iv = combined.slice(0, 12);
     var ciphertext = combined.slice(12);
     var plaintext = await crypto.subtle.decrypt(
@@ -277,7 +292,8 @@ function renderGiverOptions(container, prefilledSession, prefilledKey) {
     container.innerHTML = '<h1>What to Send?</h1>\n'
         + '<p>Select the type of data you want to send.</p>\n'
         + '<button id="btnSendText" style="margin-bottom: 0.5rem;">1. Long Text</button>\n'
-        + '<button id="btnSendPwd" style="margin-bottom: 0; margin-top: 0;">2. Password</button>\n'
+        + '<button id="btnSendPwd" style="margin-bottom: 0.5rem; margin-top: 0;">2. Password</button>\n'
+        + '<button id="btnSendImg" style="margin-bottom: 0; margin-top: 0;">3. Images (Max 4)</button>\n'
         + '<button id="btnBackToRole" class="secondary-btn" style="margin-top: 1.5rem;">Back</button>\n';
 
     document.getElementById('btnSendText').addEventListener('click', function() {
@@ -286,6 +302,10 @@ function renderGiverOptions(container, prefilledSession, prefilledKey) {
 
     document.getElementById('btnSendPwd').addEventListener('click', function() {
         renderGiverInput(container, 'password', prefilledSession, prefilledKey);
+    });
+
+    document.getElementById('btnSendImg').addEventListener('click', function() {
+        renderGiverInput(container, 'image', prefilledSession, prefilledKey);
     });
 
     document.getElementById('btnBackToRole').addEventListener('click', function () {
@@ -302,24 +322,102 @@ function renderGiverOptions(container, prefilledSession, prefilledKey) {
 // GIVER MODE (e.g., Mobile Phone)
 // ==========================================
 function renderGiverInput(container, type, prefilledSession, prefilledKey) {
-    var title = type === 'text' ? 'Enter Text' : 'Enter Password';
+    var title = type === 'text' ? 'Enter Text' : (type === 'image' ? 'Select Images' : 'Enter Password');
     var placeholder = type === 'text' ? 'Enter / Paste your long text here...' : 'Enter / Paste password here...';
     var nextLabel = (prefilledSession && prefilledKey) ? 'Send Securely' : 'Next: Scan PC';
 
-    var inputHtml = type === 'password'
-        ? '<input type="password" id="dataInput" placeholder="' + placeholder + '">\n'
-        : '<textarea id="dataInput" placeholder="' + placeholder + '"></textarea>\n';
+    var inputHtml = '';
+    if (type === 'password') {
+        inputHtml = '<input type="password" id="dataInput" placeholder="' + placeholder + '">\n';
+    } else if (type === 'image') {
+        inputHtml = '<input type="file" id="imageInput" accept="image/*" multiple>\n'
+                  + '<p id="imageStatus"></p>\n';
+    } else {
+        inputHtml = '<textarea id="dataInput" placeholder="' + placeholder + '"></textarea>\n';
+    }
 
     container.innerHTML = '<h1>' + title + '</h1>\n'
-        + '<p>Paste the content you want to send.</p>\n'
+        + '<p>' + (type === 'image' ? 'Select up to 4 images.' : 'Paste the content you want to send.') + '</p>\n'
         + inputHtml
         + '<button id="nextBtn">' + nextLabel + '</button>\n'
         + '<button id="btnBackToGiverOptions" class="secondary-btn" style="margin-top: 1rem;">Back</button>\n';
 
+    var imagePayload = '';
+    if (type === 'image') {
+        var fileInput = document.getElementById('imageInput');
+        var imgStatus = document.getElementById('imageStatus');
+        
+        fileInput.addEventListener('change', async function() {
+            if (this.files.length > 4) {
+                alert("You can only select up to 4 images at once.");
+                this.value = '';
+                imgStatus.innerText = '';
+                imagePayload = '';
+                return;
+            }
+            imgStatus.innerText = 'Processing images...';
+            try {
+                var processedImages = [];
+                for (var i = 0; i < this.files.length; i++) {
+                    processedImages.push(await processImage(this.files[i]));
+                }
+                imagePayload = JSON.stringify(processedImages);
+                imgStatus.innerText = this.files.length + ' image(s) ready.';
+            } catch (e) {
+                imgStatus.innerText = 'Error processing images.';
+                imagePayload = '';
+            }
+        });
+    }
+
+    function processImage(file) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = new Image();
+                img.onload = function() {
+                    var canvas = document.createElement('canvas');
+                    var max_size = 1080; // Reduced from 1920 to prevent server Payload limits
+                    var width = img.width;
+                    var height = img.height;
+                    
+                    if (width > height) {
+                        if (width > max_size) {
+                            height = Math.round(height * max_size / width);
+                            width = max_size;
+                        }
+                    } else {
+                        if (height > max_size) {
+                            width = Math.round(width * max_size / height);
+                            height = max_size;
+                        }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6)); // Lowered quality slightly for fast transfers
+                };
+                img.onerror = reject;
+                img.src = e.target.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
     document.getElementById('nextBtn').addEventListener('click', function () {
-        var val = document.getElementById('dataInput').value.trim();
+        var val = '';
+        if (type === 'image') {
+            val = imagePayload;
+        } else {
+            var inputEl = document.getElementById('dataInput');
+            if (inputEl) val = inputEl.value.trim();
+        }
+        
         if (!val) {
-            alert('Please enter ' + (type === 'text' ? 'some text' : 'a password'));
+            alert('Please ' + (type === 'image' ? 'select images and wait for them to process' : 'enter ' + (type === 'text' ? 'some text' : 'a password')));
             return;
         }
         
@@ -444,14 +542,14 @@ function sendDataToBackend(container, dataVal, dataType, session, key) {
             var payloadObj = { type: dataType, content: dataVal };
             var encrypted = await encryptData(JSON.stringify(payloadObj), key);
 
-            var formData = new URLSearchParams();
+            // Use native FormData to safely transport huge base64 strings past WAFs
+            var formData = new FormData();
             formData.append('session', session);
             formData.append('data', encrypted);
 
             var response = await fetch(apiUrl + '?action=store', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData.toString()
+                body: formData
             });
 
             var result = null;
@@ -767,6 +865,124 @@ function showDecryptedData(container, dataText, dataType) {
             + '<p style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8;">'
             + 'This screen will automatically reset in <span id="countdown">30</span> seconds.\n'
             + '</p>';
+    } else if (dataType === 'image') {
+        try {
+            var images = JSON.parse(dataText);
+            var imagesHtml = '<div class="image-gallery">';
+            for (var i = 0; i < images.length; i++) {
+                imagesHtml += '<div class="image-card">'
+                           + '<img src="' + escapeHtml(images[i]) + '" class="expandable-img" data-index="' + i + '" title="Click to expand">'
+                           + '<div class="image-actions">'
+                           + '<button class="expand-img-btn secondary-btn" data-index="' + i + '">Expand</button>'
+                           + '<button class="download-img-btn secondary-btn" data-index="' + i + '">Save</button>'
+                           + '</div>'
+                           + '</div>';
+            }
+            imagesHtml += '</div>';
+
+            container.innerHTML = '<h1>Decrypted Securely</h1>\n'
+                + '<p>Image(s) received successfully.</p>\n'
+                + (images.length > 1 ? '<button id="downloadAllBtn" style="margin-bottom:1rem; width:100%;">Download All Images</button>\n' : '')
+                + imagesHtml
+                + '<button id="startOverBtn" class="secondary-btn" style="width:100%; margin-top:1rem;">Start Over</button>\n'
+                + '<p style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8;">'
+                + 'This screen will automatically reset in <span id="countdown">60</span> seconds.\n'
+                + '</p>';
+
+            // Function to trigger a single download
+            var triggerDownload = function(dataUrl, filename) {
+                var link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            // Image Fullscreen Viewer
+            var showImageFullscreen = function(dataUrl, filename) {
+                var existing = document.getElementById('imageFullscreenOverlay');
+                if (existing) existing.remove();
+
+                var overlay = document.createElement('div');
+                overlay.id = 'imageFullscreenOverlay';
+                overlay.className = 'image-fullscreen-overlay';
+                
+                // Top-right controls container
+                var controls = document.createElement('div');
+                controls.className = 'image-fullscreen-controls';
+                
+                var topDownloadBtn = document.createElement('button');
+                topDownloadBtn.textContent = 'Download';
+                topDownloadBtn.className = 'image-fullscreen-download';
+                topDownloadBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    triggerDownload(dataUrl, filename);
+                };
+
+                var closeBtn = document.createElement('button');
+                closeBtn.innerHTML = '&times;'; // better X symbol
+                closeBtn.className = 'image-fullscreen-close';
+                closeBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    overlay.remove();
+                };
+
+                controls.appendChild(topDownloadBtn);
+                controls.appendChild(closeBtn);
+
+                var img = document.createElement('img');
+                img.src = dataUrl;
+                img.className = 'image-fullscreen-img';
+
+                overlay.appendChild(controls);
+                overlay.appendChild(img);
+
+                // Close on background click
+                overlay.onclick = function(e) {
+                    if (e.target === overlay) {
+                        overlay.remove();
+                    }
+                };
+
+                document.body.appendChild(overlay);
+            };
+
+            // Add expand listeners (both on image click and expand button)
+            var expandImg = function() {
+                var idx = parseInt(this.getAttribute('data-index'));
+                showImageFullscreen(images[idx], 'transferred_image_' + (idx + 1) + '.jpg');
+            };
+            document.querySelectorAll('.expand-img-btn, .expandable-img').forEach(function(el) {
+                el.addEventListener('click', expandImg);
+            });
+
+            // Add download all listener
+            var downloadAllBtn = document.getElementById('downloadAllBtn');
+            if (downloadAllBtn) {
+                downloadAllBtn.addEventListener('click', function() {
+                    for (var i = 0; i < images.length; i++) {
+                        (function(idx) {
+                            setTimeout(function() {
+                                triggerDownload(images[idx], 'transferred_image_' + (idx + 1) + '.jpg');
+                            }, idx * 250); // Small delay to prevent browser blocking multiple popups
+                        })(i);
+                    }
+                });
+            }
+
+            // Add individual download listeners
+            var downloadBtns = document.querySelectorAll('.download-img-btn');
+            downloadBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var idx = parseInt(this.getAttribute('data-index'));
+                    triggerDownload(images[idx], 'transferred_image_' + (idx + 1) + '.jpg');
+                });
+            });
+        } catch(e) {
+            showError(container, 'Failed to parse decrypted image data.');
+            return;
+        }
     } else {
         container.innerHTML = '<h1>Decrypted Securely</h1>\n'
             + '<p>Text received successfully. Click to copy.</p>\n'
@@ -779,31 +995,34 @@ function showDecryptedData(container, dataText, dataType) {
             + '</p>';
     }
 
-    document.getElementById('copyBtn').addEventListener('click', async function () {
-        try {
-            await navigator.clipboard.writeText(dataText);
-            var status = document.getElementById('copyStatus');
-            status.className = 'status-msg success';
-            status.innerText = 'Copied to clipboard!';
+    var copyBtn = document.getElementById('copyBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async function () {
+            try {
+                await navigator.clipboard.writeText(dataText);
+                var status = document.getElementById('copyStatus');
+                status.className = 'status-msg success';
+                status.innerText = 'Copied to clipboard!';
 
-            setTimeout(function () { 
-                if (status) status.innerText = ''; 
-            }, 3000);
-        } catch (err) {
-            var status = document.getElementById('copyStatus');
-            if (status) {
-                status.className = 'status-msg error';
-                status.innerText = 'Failed to copy contents natively.';
+                setTimeout(function () { 
+                    if (status) status.innerText = ''; 
+                }, 3000);
+            } catch (err) {
+                var status = document.getElementById('copyStatus');
+                if (status) {
+                    status.className = 'status-msg error';
+                    status.innerText = 'Failed to copy contents natively.';
+                }
             }
-        }
-    });
+        });
+    }
 
     document.getElementById('startOverBtn').addEventListener('click', function () {
         window.location.reload();
     });
 
-    // Security: Auto-clear from memory within 30 seconds
-    var timeLeft = 30;
+    // Security: Auto-clear from memory within 30 seconds (or 60s for images)
+    var timeLeft = (dataType === 'image') ? 60 : 30;
     var countdownEl = document.getElementById('countdown');
 
     var interval = setInterval(function () {
