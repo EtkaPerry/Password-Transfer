@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Terms of Service and Acceptable Use Policy for the Password Transfer service.">
+    <title>Terms of Service — Password Transfer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="main-content legal-main">
+        <article class="legal-container">
+            <a class="legal-back" href="index.html">&larr; Back to Password Transfer</a>
+
+            <h1>Terms of Service &amp; Acceptable Use Policy</h1>
+            <p class="legal-meta">Version 1.1 &middot; Effective 3 August 2026 &middot; Applies to the service hosted at <span class="legal-nowrap">your-domain.example/password</span></p>
+
+            <section class="legal-summary">
+                <h2>In short</h2>
+                <ul>
+                    <li>Password Transfer moves text, passwords or images from your phone to a computer. Everything is encrypted in your browser before it is sent, so we cannot read what you transfer.</li>
+                    <li>You must not use the Service for anything illegal. That includes stolen credentials, phishing, malware, unlawful images, and unauthorised access to other people's systems.</li>
+                    <li>The Service is free, provided "as is", and may be unavailable or changed at any time. Do not rely on it as your only copy of anything.</li>
+                    <li>You are responsible for what you transfer and for who is standing next to the screen.</li>
+                </ul>
+                <p class="legal-summary-note">This box is a plain-English summary for convenience only. The numbered sections below are the terms that actually apply.</p>
+            </section>
+
+            <h2 id="s1">1. Acceptance of these Terms</h2>
+            <p>These Terms of Service and Acceptable Use Policy (the "<strong>Terms</strong>") form a binding agreement between you and us and govern your access to and use of the Password Transfer website and application (the "<strong>Service</strong>").</p>
+            <p>By accessing, opening, or using the Service in any way &mdash; including by scanning a Password Transfer QR code, generating one, or sending or receiving data through it &mdash; you confirm that you have read, understood and agree to be bound by these Terms. The Service displays a notice to this effect immediately beside the buttons that begin a transfer, so that pressing one of those buttons is a deliberate act of agreement.</p>
+            <p><strong>If you do not agree to these Terms, you must not use the Service.</strong> Closing the page is the only action required to decline.</p>
+
+            <h2 id="s2">2. Who we are</h2>
+            <p>The Service is provided by the maintainer of the Password Transfer open-source project ("<strong>we</strong>", "<strong>us</strong>", "<strong>our</strong>"), publishing at <span class="legal-nowrap">your-domain.example</span> and at <a href="https://github.com/EtkaPerry/Password-Transfer" rel="noopener noreferrer">github.com/EtkaPerry/Password-Transfer</a>.</p>
+            <p>For legal notices, abuse reports and data protection requests, contact <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>. For bug reports and feature requests, please use the GitHub issue tracker instead.</p>
+
+            <h2 id="s3">3. Eligibility</h2>
+            <p>You must be at least 16 years old to use the Service. If you are between 13 and 15, you may use the Service only with the consent and supervision of a parent or legal guardian. The Service is not directed at, and must not be used by, children under 13.</p>
+            <p>You must also have the legal capacity to enter into these Terms, and you must not be a person barred from using the Service under the laws of your country of residence or any applicable sanctions or export-control regime.</p>
+
+            <h2 id="s4">4. What the Service does</h2>
+            <p>Password Transfer lets you move a short piece of text, a password, or up to four images from one device (the "sender") to another (the "receiver") without typing it out, using a QR code that is displayed on the receiving device and scanned by the sending device.</p>
+            <ol class="legal-flow">
+                <li>The receiving device generates a random session identifier and a random encryption key, and displays them together as a QR code. The key is contained in the URL fragment, which browsers do not normally transmit to a server.</li>
+                <li>The sending device scans the code, encrypts your content <em>in your browser</em> using AES-256-GCM, and uploads only the resulting ciphertext to our server against that session identifier.</li>
+                <li>The receiving device fetches the ciphertext and decrypts it locally. The stored ciphertext is deleted from the server on first retrieval, and in any event expires shortly afterwards.</li>
+            </ol>
+            <p>We do not hold the decryption key, and we therefore cannot read, recover, moderate or restore the content of a transfer. This is a deliberate design property of the Service, and it has consequences described in sections 7, 8 and 15.</p>
+
+            <h2 id="s5">5. Acceptable Use &mdash; prohibited activities</h2>
+            <p class="legal-important">You must not use the Service for any purpose that is unlawful under the laws of England and Wales, the laws of your own country of residence, or any other law that applies to you or to us. Nothing in the design of the Service &mdash; including the fact that we cannot read your content &mdash; makes unlawful use permissible.</p>
+            <p>Without limiting the above, you must not use the Service to send, receive, store, request or facilitate any of the following:</p>
+
+            <h3>5.1 Unauthorised credentials and system access</h3>
+            <ul>
+                <li>Passwords, keys, tokens, session cookies, or other credentials that you are not authorised to possess or use, including credentials obtained through theft, breach, phishing, purchase, or a leaked or dumped credential list.</li>
+                <li>Material intended to obtain unauthorised access to any computer, account, network or data, or to exceed authorised access. This includes conduct prohibited by the Computer Misuse Act 1990 and equivalent laws elsewhere in Europe.</li>
+                <li>Credentials transferred in order to bypass an employer's, provider's or platform's access controls, licensing terms, or account-sharing rules where doing so is unlawful or breaches a binding agreement.</li>
+            </ul>
+
+            <h3>5.2 Fraud and deception</h3>
+            <ul>
+                <li>Phishing kits, fraudulent payment or identity data, stolen card or bank details, forged documents, or anything used to impersonate another person or organisation.</li>
+                <li>Social engineering of any kind, including inducing another person to scan a QR code in order to capture data from them without their informed consent.</li>
+            </ul>
+
+            <h3>5.3 Malicious code and attacks on the Service</h3>
+            <ul>
+                <li>Malware, ransomware, spyware, keyloggers, exploit code, or command-and-control instructions, other than in a lawful, authorised and contained security-research or testing context.</li>
+                <li>Attempts to disrupt, overload, probe or circumvent the Service or its protections, including denial-of-service activity, brute-forcing or enumerating session identifiers, defeating or automating past the Cloudflare Turnstile challenge, or evading rate limits.</li>
+                <li>Automated, scripted or bulk use of the Service, or use of the Service as a general-purpose file host, data-exfiltration channel, message queue, backup location or content delivery network.</li>
+            </ul>
+
+            <h3>5.4 Unlawful content</h3>
+            <ul>
+                <li><strong>Child sexual abuse material, in any form, without exception.</strong> We report credible information about such material to the appropriate authorities and permanently deny access wherever we are able to identify the source.</li>
+                <li>Intimate images shared without the consent of the person depicted.</li>
+                <li>Terrorist or violent extremist material, or content that incites violence, genocide, or serious harm to any person or group.</li>
+                <li>Material that infringes another person's copyright, trade marks, trade secrets, confidentiality obligations or other rights.</li>
+                <li>Personal data relating to other people where you have no lawful basis to share it, and special-category personal data shared unlawfully.</li>
+                <li>Anything whose transfer would breach applicable sanctions or export-control law.</li>
+            </ul>
+
+            <h3>5.5 Misrepresenting the Service</h3>
+            <ul>
+                <li>You must not present the Service, or an interface that proxies it, as your own, and you must not use the "Password Transfer" name or branding to imply endorsement. Reuse of the underlying source code is governed separately by the project <a href="LICENSE" rel="noopener">licence</a>, not by these Terms.</li>
+            </ul>
+
+            <p>If you become aware of any use of the Service that breaches this section, please report it to <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>.</p>
+
+            <h2 id="s6">6. Your content and your responsibility</h2>
+            <p>You retain all rights in the content you transfer. We claim no ownership of it and, because it is encrypted before it reaches us, we do not analyse, index, profile, train on, sell or disclose it.</p>
+            <p>You are solely responsible for:</p>
+            <ul>
+                <li>the legality of what you transfer and your right to transfer it;</li>
+                <li>the physical and digital security of both devices involved, including who can see the receiving screen while decrypted content is displayed, and the trustworthiness of any computer you choose to transfer credentials to;</li>
+                <li>keeping the session QR code and its embedded key away from anyone you do not intend to receive the data &mdash; anyone who scans or photographs a live code can send data into that session; and</li>
+                <li>keeping your own copy of anything important. The Service is a transport mechanism, not storage.</li>
+            </ul>
+
+            <h2 id="s7">7. Security &mdash; what we do and what we cannot promise</h2>
+            <p>Encryption and decryption happen in your browser using the Web Crypto API (AES-256-GCM), with keys generated by your browser's cryptographic random number generator. Displayed QR codes rotate periodically, unclaimed sessions expire, and stored ciphertext is deleted on first retrieval.</p>
+            <p>You should nevertheless understand the following limits, which we state openly rather than leave implied:</p>
+            <ul>
+                <li>Security depends on the integrity of both devices and browsers. A compromised phone or computer &mdash; including one with a keylogger, screen recorder or malicious extension &mdash; can capture your content before encryption or after decryption. The Service reduces typing-related exposure; it does not make an untrusted computer safe.</li>
+                <li>The decryption key travels in the URL fragment specifically so that it is not sent to our server. Some mobile camera and messaging apps rewrite a fragment into a query string when opening a link, and a query string <em>is</em> transmitted in the request &mdash; so in that situation the key reaches our server, our hosting provider and any network intermediary, and may be recorded in their logs. The Service now detects this: the key is removed from the address immediately, the Service does not send a referrer containing it, and <strong>you are shown a warning and asked to scan the QR code again instead of continuing</strong>. Because the request carrying the key arrives before any of our code can run, we cannot undo that first disclosure &mdash; we can only stop it spreading further and let you decide. If you choose to continue past that warning, treat the transfer as one we could in principle read.</li>
+                <li>No online service can be guaranteed secure. We do not warrant that the Service is free of vulnerabilities or that a transfer cannot be intercepted or compromised.</li>
+            </ul>
+            <p>If you believe you have found a security vulnerability, please report it privately to <a href="mailto:legal@your-domain.example">legal@your-domain.example</a> before disclosing it publicly, and do not access, alter or retain other people's data while investigating.</p>
+
+            <h2 id="s8">8. Data protection and privacy</h2>
+            <p>We act as the data controller for the limited personal data described here, and we process it in accordance with the UK GDPR and the EU GDPR. We have deliberately designed the Service to need as little personal data as possible.</p>
+            <p>This section is a summary. The full notice, including legal bases, retention periods, recipients and your rights, is set out in the <a href="privacy.html">Privacy Policy</a>, which forms part of these Terms. A privacy notice is information we are obliged to give you rather than something you agree to, so we ask you to read it, not to accept it.</p>
+
+            <h3>8.1 What is processed</h3>
+            <ul>
+                <li><strong>Encrypted transfer payloads.</strong> Ciphertext we cannot decrypt, stored against a random session identifier. Deleted when the receiver retrieves it, and expired and purged shortly afterwards regardless. There is no long-term archive and no backup of transfer content.</li>
+                <li><strong>Your IP address.</strong> Recorded briefly and used solely to apply rate limits and to prevent abuse of the Service, and passed to Cloudflare as part of the anti-bot challenge. Rate-limit records are short-lived and are not used to build a profile of you.</li>
+                <li><strong>Anti-bot challenge data.</strong> Cloudflare Turnstile is used to confirm that a session is being created by a person rather than a script. Whether a session passed the challenge is recorded for a few minutes so the transfer can complete.</li>
+                <li><strong>Standard server logs.</strong> Our hosting provider may keep conventional web-server access logs (such as IP address, timestamp, requested path and user agent) under its own retention policy, as is normal for any website.</li>
+                <li><strong>Local storage on your device.</strong> We store a single flag recording that you dismissed the storage notice, so that it is not shown on every visit. This stays on your device, is not transmitted to us, and can be removed by clearing your browser's site data.</li>
+            </ul>
+            <p>We do not use analytics, advertising, tracking pixels or third-party cookies, and we do not require an account, an email address or any other identifying information to use the Service.</p>
+
+            <h3>8.2 Why we are allowed to process it</h3>
+            <p>Processing the encrypted payload is necessary to provide the service you have asked for (Article 6(1)(b) UK/EU GDPR). Processing your IP address and challenge data rests on our legitimate interest in keeping the Service available, secure and free from abuse (Article 6(1)(f)). The record of your acceptance of these Terms is stored on your own device and is necessary to provide the Service.</p>
+
+            <h3>8.3 Your rights</h3>
+            <p>You have the right to access, rectify, erase, restrict and object to the processing of your personal data, and to data portability, by writing to <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>. Please note an inherent limitation: because we do not hold accounts and cannot decrypt transfer content, we are usually unable to identify which records &mdash; if any &mdash; relate to you. Where we cannot identify you, Article 11 GDPR applies and we may be unable to act on a request unless you provide information that makes identification possible. In practice, the data in question will normally have been deleted before a request reaches us.</p>
+            <p>If you are unhappy with how we have handled your personal data, you may complain to the UK Information Commissioner's Office (<a href="https://ico.org.uk" rel="noopener noreferrer">ico.org.uk</a>) or, if you are in the EEA, to your national supervisory authority.</p>
+
+            <h2 id="s9">9. Third-party services</h2>
+            <p>The Service uses <strong>Cloudflare Turnstile</strong> for bot protection. When a challenge runs, your browser contacts Cloudflare directly and Cloudflare receives your IP address and technical information about your browser, processed under Cloudflare's own terms and privacy policy. The Service is also delivered through ordinary web hosting and network infrastructure operated by third parties. We are not responsible for the practices of these providers beyond our contractual arrangements with them.</p>
+
+            <h2 id="s10">10. Availability, changes and suspension</h2>
+            <p>The Service is provided free of charge and on a best-effort basis. We do not guarantee any level of availability, and we may modify, suspend, limit or discontinue the Service, or any part of it, at any time and without notice or liability. Session lifetimes, size limits, rate limits and other operational parameters may change.</p>
+            <p>We may restrict or block access, including by IP address or network, where we reasonably believe it is necessary to protect the Service or its users, to stop abuse, or to comply with the law. Because we cannot see transfer content, such measures are necessarily based on behaviour, volume and other metadata rather than on what was transferred.</p>
+
+            <h2 id="s11">11. No warranty</h2>
+            <p>The Service is provided "<strong>as is</strong>" and "<strong>as available</strong>", without warranties or representations of any kind, whether express, implied or statutory, to the fullest extent permitted by law. In particular we do not warrant that the Service will be uninterrupted, timely, error-free or secure, that transfers will succeed or arrive intact, that data will be retained for any period, or that the Service is fit for any particular purpose. If you are a consumer, this section does not affect statutory rights that cannot be excluded.</p>
+
+            <h2 id="s12">12. Limitation of liability</h2>
+            <p>To the fullest extent permitted by law, we shall not be liable for any indirect, incidental, special or consequential loss, nor for loss of profit, revenue, business, goodwill, opportunity, or for loss of, corruption of, or unauthorised access to data, arising out of or in connection with your use of, or inability to use, the Service &mdash; including any failed, delayed, intercepted, incomplete or prematurely deleted transfer, and any consequences of a credential being exposed on a device you chose to use.</p>
+            <p>Our total aggregate liability to you in connection with the Service, whether in contract, tort (including negligence), breach of statutory duty or otherwise, shall not exceed one hundred pounds sterling (&pound;100).</p>
+            <p><strong>Nothing in these Terms excludes or limits our liability for death or personal injury caused by our negligence, for fraud or fraudulent misrepresentation, or for any other liability that cannot lawfully be excluded or limited.</strong></p>
+
+            <h2 id="s13">13. Indemnity</h2>
+            <p>If you use the Service in breach of section 5, you agree to indemnify us against any claim, demand, loss, damage, fine or reasonable cost (including reasonable legal fees) brought by a third party or a regulator that arises out of that breach. This section does not apply to you if you are acting as a consumer.</p>
+
+            <h2 id="s14">14. Relationship to the open-source licence</h2>
+            <p>Password Transfer is open-source software. These Terms govern your use of <em>the hosted service we operate</em>. Your rights to copy, modify, self-host and redistribute the <em>source code</em> are granted separately and exclusively by the project <a href="LICENSE" rel="noopener">licence</a>, and nothing in these Terms enlarges or restricts that licence. If you run your own instance, you are the operator of that instance and these Terms do not apply to it &mdash; and we are not responsible for it.</p>
+
+            <h2 id="s15">15. Enforcement and legal requests</h2>
+            <p>Breach of these Terms, and in particular of section 5, terminates your permission to use the Service immediately. We may block access and, where the law requires it or where we believe in good faith that there is a risk of serious harm, we may report the matter to law enforcement and cooperate with lawful requests.</p>
+            <p>You should understand what such cooperation can realistically involve: we hold no account data, no transfer content in readable form, and no decryption keys, and transfer records are deleted within a very short window. We can only ever provide what we actually hold at the time a valid request is received, which will normally be little or nothing. We do not build, and will not introduce, a mechanism that would give us access to the plaintext of your transfers.</p>
+
+            <h2 id="s16">16. Changes to these Terms</h2>
+            <p>We may update these Terms from time to time, for example to reflect changes to the Service or to the law. The version number and effective date at the top of this page will change. Continuing to use the Service after a change takes effect means you accept the updated Terms; if you do not accept them, you must stop using the Service.</p>
+
+            <h2 id="s17">17. Governing law, jurisdiction and consumer rights</h2>
+            <p>These Terms and any dispute arising out of them or the Service are governed by the laws of England and Wales, and the courts of England and Wales have jurisdiction.</p>
+            <p><strong>If you are a consumer resident in the European Economic Area or the United Kingdom, this does not deprive you of the protection of the mandatory provisions of the law of your country of residence.</strong> You keep any mandatory consumer rights available to you there, and you may bring proceedings in the courts of your country of residence as well as in England and Wales. EEA consumers may also use the relevant national alternative dispute resolution or consumer protection bodies where these are available.</p>
+
+            <h2 id="s18">18. General</h2>
+            <ul>
+                <li>If any provision of these Terms is found to be unenforceable, the remaining provisions continue in full force, and the unenforceable provision is to be applied to the maximum extent permitted.</li>
+                <li>A delay or failure by us to enforce any part of these Terms is not a waiver of our right to enforce it later.</li>
+                <li>You may not assign or transfer your rights under these Terms. We may assign ours to a successor maintainer or operator of the Service.</li>
+                <li>These Terms, together with the project licence for source-code matters, are the entire agreement between you and us regarding the Service.</li>
+                <li>These Terms are published in English. Any translation is provided for convenience, and the English text prevails in the event of a conflict.</li>
+            </ul>
+
+            <h2 id="s19">19. Contact</h2>
+            <p>Legal notices, abuse reports, security disclosures and data protection requests: <a href="mailto:legal@your-domain.example">legal@your-domain.example</a><br>
+            Bugs, features and source code: <a href="https://github.com/EtkaPerry/Password-Transfer" rel="noopener noreferrer">github.com/EtkaPerry/Password-Transfer</a></p>
+
+            <p class="legal-footer-note">Password Transfer &mdash; Terms of Service v1.1, effective 3 August 2026.</p>
+
+            <a class="legal-back" href="index.html">&larr; Back to Password Transfer</a>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>Open source &mdash; </span>
+            <a href="https://github.com/EtkaPerry/Password-Transfer" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            <span class="footer-sep">&bull;</span>
+            <a href="privacy.html">Privacy Policy</a>
+            <span class="footer-sep">&bull;</span>
+            <a href="index.html">Home</a>
+        </div>
+    </footer>
+</body>
+</html>

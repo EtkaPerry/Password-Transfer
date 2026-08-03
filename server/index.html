@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Keep the path and query string out of every Referer header. If a link
+         rewriter ever puts a session key in the query string, it must not travel on
+         to our own API, to Cloudflare, or to anywhere else. -->
+    <meta name="referrer" content="strict-origin">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <meta name="cf-turnstile-sitekey" content="">
     <title>Secure Password Transfer</title>
@@ -23,6 +27,10 @@
             <span>Open source — </span>
             <a href="https://github.com/EtkaPerry/Password-Transfer" target="_blank" rel="noopener noreferrer">View on GitHub</a>
             <span class="footer-sep">•</span>
+            <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+            <span class="footer-sep">•</span>
+            <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            <span class="footer-sep">•</span>
             <a href="#" id="licenseLink" class="footer-license" aria-haspopup="dialog">License</a>
         </div>
     </footer>
@@ -33,6 +41,6 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     
     <!-- App Logic -->
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>

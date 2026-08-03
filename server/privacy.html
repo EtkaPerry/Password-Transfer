@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Privacy Policy for the Password Transfer service: what is processed, why, and for how long.">
+    <title>Privacy Policy — Password Transfer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="main-content legal-main">
+        <article class="legal-container">
+            <a class="legal-back" href="index.html">&larr; Back to Password Transfer</a>
+
+            <h1>Privacy Policy</h1>
+            <p class="legal-meta">Version 1.0 &middot; Effective 3 August 2026 &middot; Applies to the service hosted at <span class="legal-nowrap">your-domain.example/password</span></p>
+
+            <section class="legal-summary">
+                <h2>In short</h2>
+                <ul>
+                    <li>There are no accounts, no analytics, no advertising and no tracking. We do not know who you are.</li>
+                    <li>What you transfer is encrypted in your browser. We store ciphertext we cannot read, and we delete it as soon as it is collected.</li>
+                    <li>The only personal data we handle is your IP address, used briefly to stop abuse and to run the anti-bot check.</li>
+                    <li>This applies to <strong>both</strong> devices in a transfer &mdash; the phone sending and the computer receiving.</li>
+                </ul>
+                <p class="legal-summary-note">This box is a plain-English summary. The numbered sections below are the notice itself.</p>
+            </section>
+
+            <h2 id="p1">1. Who is responsible for your data</h2>
+            <p>The data controller for the processing described here is the maintainer of the Password Transfer open-source project, operating the service at <span class="legal-nowrap">your-domain.example/password</span>.</p>
+            <p>You can reach us about anything in this notice, including to exercise your rights, at <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>.</p>
+            <p>We process personal data in accordance with the UK GDPR and the EU GDPR, and with the Privacy and Electronic Communications Regulations (PECR) where they apply to storage on your device.</p>
+
+            <h2 id="p2">2. What this notice covers</h2>
+            <p>This notice covers the service we host. It does <strong>not</strong> cover other people's installations: Password Transfer is open-source software, and anyone may run their own copy. If you are using an instance at some other address, that operator is the controller and you should ask them for their notice. Your use of our hosted service is also subject to our <a href="terms.html">Terms of Service</a>.</p>
+
+            <h2 id="p3">3. This applies to both sides of a transfer</h2>
+            <p>A transfer involves two devices, and people sometimes assume only the sending device is relevant. It is worth being clear that both are covered, and that they are not identical:</p>
+            <ul>
+                <li><strong>The receiver (usually a computer)</strong> creates the session, displays the QR code and polls for the result. This is the side that runs the Cloudflare Turnstile anti-bot check, so it is the side whose IP address is shared with a third party. In terms of data leaving our infrastructure, the receiver is the more exposed of the two.</li>
+                <li><strong>The giver (usually a phone)</strong> scans the code, encrypts the content locally and uploads the ciphertext. Its IP address is processed by our rate limiter, and its camera is used only in your browser to read the QR code &mdash; no image or video from your camera is transmitted to us or stored anywhere.</li>
+            </ul>
+            <p>Neither role requires you to identify yourself, and we do not link the two sides of a transfer to any person.</p>
+
+            <h2 id="p4">4. What we process, why, and on what legal basis</h2>
+
+            <h3>4.1 The encrypted transfer payload</h3>
+            <p><strong>What:</strong> the ciphertext produced by your browser, stored against a random session identifier. We hold no decryption key and cannot read it. It may contain personal data, but only in a form that is meaningless to us.<br>
+            <strong>Why:</strong> to carry the transfer from one device to the other &mdash; the service you asked for.<br>
+            <strong>Legal basis:</strong> performance of a contract with you, Article 6(1)(b).<br>
+            <strong>Retention:</strong> deleted the moment the receiving device collects it. If nobody collects it, it expires within about 30 seconds and a cleanup pass removes it shortly after. There is no archive and no backup.</p>
+
+            <h3>4.2 Your IP address</h3>
+            <p><strong>What:</strong> the IP address your requests come from.<br>
+            <strong>Why:</strong> to apply rate limits, so that one source cannot flood or abuse a free service, and to pass to Cloudflare as part of the anti-bot check.<br>
+            <strong>Legal basis:</strong> our legitimate interest in keeping the service available, secure and free from abuse, Article 6(1)(f). We consider this proportionate because the data is held very briefly, is used only to count requests, and is not combined with anything else or used to build a profile.<br>
+            <strong>Retention:</strong> rate-limit counters roll over on a short window, typically 60 seconds.</p>
+
+            <h3>4.3 Anti-bot challenge data</h3>
+            <p><strong>What:</strong> Cloudflare Turnstile runs in your browser to confirm a session is being created by a person rather than a script. Cloudflare receives your IP address and technical signals about your browser. We receive back only a pass or fail, and we record that a given session passed.<br>
+            <strong>Why:</strong> to stop automated abuse of the service.<br>
+            <strong>Legal basis:</strong> legitimate interests, Article 6(1)(f).<br>
+            <strong>Retention:</strong> the record that a session passed is kept for a few minutes, long enough for the transfer to complete, then deleted.</p>
+
+            <h3>4.4 Server logs</h3>
+            <p><strong>What:</strong> our hosting provider, and the network in front of it, keep conventional web-server access logs &mdash; typically IP address, timestamp, requested path, status code and user agent. This is standard for any website and is not specific to this service.<br>
+            <strong>Why:</strong> operating and securing the infrastructure, and diagnosing faults.<br>
+            <strong>Legal basis:</strong> legitimate interests, Article 6(1)(f).<br>
+            <strong>Retention:</strong> under the hosting provider's own policy, which we do not control.</p>
+
+            <h3>4.5 Storage on your own device</h3>
+            <p><strong>What:</strong> a single flag in your browser's local storage recording that you dismissed the storage notice, so you are not shown it on every visit.<br>
+            <strong>Why:</strong> to honour a preference you expressed.<br>
+            <strong>Legal basis:</strong> this is strictly necessary to provide a feature you asked for and is exempt from the consent requirement under PECR regulation 6(4).<br>
+            <strong>Retention:</strong> it stays on your device until you clear your browser's site data. It is never transmitted to us.</p>
+            <p>We do not use cookies. We do not use analytics cookies, advertising cookies or any third-party tracking cookie.</p>
+
+            <h2 id="p5">5. What we do not do</h2>
+            <ul>
+                <li>We do not require an account, an email address, a phone number or a name.</li>
+                <li>We do not use analytics, advertising networks, tracking pixels, fingerprinting or session recording.</li>
+                <li>We do not sell, rent or share personal data for marketing, and we never will.</li>
+                <li>We do not read, scan, index or moderate the content of transfers &mdash; we cannot, and we do not intend to build a way to.</li>
+                <li>We do not use anything you transfer to train machine-learning models.</li>
+                <li>We do not make automated decisions about you that produce legal or similarly significant effects, and we do not profile you.</li>
+            </ul>
+
+            <h2 id="p6">6. Who else is involved</h2>
+            <p>Two categories of third party necessarily touch your data:</p>
+            <ul>
+                <li><strong>Cloudflare</strong> provides the Turnstile anti-bot challenge and network protection. Your browser contacts Cloudflare directly, so Cloudflare receives your IP address and browser signals under its own terms and privacy policy.</li>
+                <li><strong>Our hosting provider</strong> runs the servers on which the encrypted payloads are briefly stored and which produce the access logs described above.</li>
+            </ul>
+            <p>Beyond these, we disclose personal data only where the law requires it. See section 15 of the <a href="terms.html">Terms of Service</a> for what such a disclosure could realistically contain: no accounts, no readable content, no keys, and records that are normally deleted long before any request could arrive.</p>
+
+            <h2 id="p7">7. International transfers</h2>
+            <p>Cloudflare operates a global network, so an anti-bot check may be handled at a location outside the UK or EEA. Where personal data leaves the UK or EEA, it is protected by an adequacy decision or by Standard Contractual Clauses together with the UK International Data Transfer Addendum, as applicable. Encrypted transfer payloads are stored on our hosting provider's infrastructure and, in any event, are unreadable without a key we do not hold.</p>
+
+            <h2 id="p8">8. Your rights</h2>
+            <p>You have the right to request access to your personal data, its rectification or erasure, restriction of processing, and data portability, and to object to processing based on our legitimate interests. Where any processing rested on consent, you may withdraw it at any time without affecting the lawfulness of what came before. To exercise any of these, write to <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>.</p>
+            <p class="legal-important">One limitation is important and we would rather state it plainly than have you discover it. Because there are no accounts and we cannot decrypt transfer content, we usually cannot tell which records &mdash; if any &mdash; relate to you. Where a controller cannot identify a data subject, Article 11 GDPR applies and we may be unable to act on a request unless you can supply information that makes identification possible. In practice the data will normally have been deleted within seconds, long before a request reaches us. This is a consequence of collecting almost nothing, not a way of avoiding the obligation.</p>
+
+            <h2 id="p9">9. Complaints</h2>
+            <p>If you are unhappy with how we have handled your personal data, please tell us first at <a href="mailto:legal@your-domain.example">legal@your-domain.example</a> so we have a chance to put it right. You also have the right to complain to a supervisory authority:</p>
+            <ul>
+                <li>In the United Kingdom, the Information Commissioner's Office &mdash; <a href="https://ico.org.uk" rel="noopener noreferrer">ico.org.uk</a>.</li>
+                <li>In the EEA, the data protection authority of the country where you live, where you work, or where you believe the problem occurred.</li>
+            </ul>
+
+            <h2 id="p10">10. Children</h2>
+            <p>The service is not directed at children under 13 and, as set out in section 3 of the <a href="terms.html">Terms of Service</a>, you must be 16 or older to use it, or 13 to 15 with a parent or guardian's consent and supervision. We do not knowingly collect personal data from children. Since we collect no identifying information at all, we have no means of detecting a user's age; if you believe a child's data has reached us, contact <a href="mailto:legal@your-domain.example">legal@your-domain.example</a>.</p>
+
+            <h2 id="p11">11. Security</h2>
+            <p>Content is encrypted in your browser with AES-256-GCM before it is transmitted, transport is over HTTPS, stored payloads are deleted on collection and expire quickly, and the storage directory is placed outside the web root where possible. Section 7 of the <a href="terms.html">Terms of Service</a> sets out the limits of these measures honestly, including the risk from a compromised device and the circumstances in which a decryption key could reach our server. Please read it &mdash; it matters more than this paragraph.</p>
+
+            <h2 id="p12">12. Changes to this notice</h2>
+            <p>We may update this notice, for example if the service changes or a new provider is introduced. The version number and effective date at the top of this page will change. Material changes will also be reflected in the notice shown in the application.</p>
+
+            <h2 id="p13">13. Contact</h2>
+            <p>Data protection requests, privacy questions and complaints: <a href="mailto:legal@your-domain.example">legal@your-domain.example</a><br>
+            Source code, so you can verify any of the above: <a href="https://github.com/EtkaPerry/Password-Transfer" rel="noopener noreferrer">github.com/EtkaPerry/Password-Transfer</a></p>
+
+            <p class="legal-footer-note">Password Transfer &mdash; Privacy Policy v1.0, effective 3 August 2026. See also the <a href="terms.html">Terms of Service</a>.</p>
+
+            <a class="legal-back" href="index.html">&larr; Back to Password Transfer</a>
+        </article>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>Open source &mdash; </span>
+            <a href="https://github.com/EtkaPerry/Password-Transfer" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            <span class="footer-sep">&bull;</span>
+            <a href="terms.html">Terms of Service</a>
+            <span class="footer-sep">&bull;</span>
+            <a href="index.html">Home</a>
+        </div>
+    </footer>
+</body>
+</html>

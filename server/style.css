@@ -183,6 +183,21 @@ button:disabled {
     color: var(--error-color);
 }
 
+/* Inline warning box inside .container (e.g. an exposed session key) */
+.warning-panel {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.35);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.warning-panel p {
+    margin: 0;
+    color: #e2e8f0;
+}
+
 /* Footer stays at bottom of page, below main content and cookie banner */
 .site-footer {
     text-align: center;
@@ -286,6 +301,143 @@ button:disabled {
     min-width: 8rem;
     align-self: center;
     margin: 0 1.25rem 1rem 1.25rem;
+}
+
+/* Consent notice sitting directly under the role buttons: pressing a button is
+   the act of agreement, so the notice has to be adjacent to it. */
+.consent-notice {
+    margin: 1.25rem 0 0 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #94a3b8;
+}
+.consent-notice a {
+    color: #cbd5e1;
+    text-decoration: underline;
+}
+.consent-notice a:hover {
+    color: var(--primary-color);
+}
+
+/* Legal pages (terms.html) */
+.legal-main {
+    align-items: flex-start;
+    padding: 1rem 0;
+}
+.legal-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    max-width: 52rem;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2.5rem;
+    text-align: left;
+}
+.legal-container h1 {
+    font-size: 1.7rem;
+    margin-bottom: 0.35rem;
+}
+.legal-container h2 {
+    font-size: 1.15rem;
+    margin: 2rem 0 0.75rem 0;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
+}
+.legal-container h3 {
+    font-size: 1rem;
+    color: var(--primary-color);
+    margin: 1.4rem 0 0.5rem 0;
+}
+.legal-container p,
+.legal-container li {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+.legal-container ul,
+.legal-container ol {
+    margin: 0 0 1.4rem 1.25rem;
+    padding: 0;
+}
+.legal-container li {
+    margin-bottom: 0.55rem;
+}
+.legal-container a {
+    color: var(--primary-color);
+}
+.legal-container strong {
+    color: #f1f5f9;
+}
+.legal-container code {
+    font-family: monospace;
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 4px;
+    padding: 0.05rem 0.3rem;
+}
+.legal-meta {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-bottom: 1.75rem;
+}
+.legal-nowrap {
+    white-space: nowrap;
+}
+.legal-summary {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 8px;
+    padding: 1.1rem 1.35rem 0.6rem 1.35rem;
+    margin-bottom: 1rem;
+}
+.legal-summary h2 {
+    font-size: 1rem;
+    margin: 0 0 0.75rem 0;
+    padding-top: 0;
+    border-top: none;
+    color: var(--primary-color);
+}
+.legal-summary ul {
+    margin-bottom: 0.9rem;
+}
+.legal-summary-note {
+    font-size: 0.82rem !important;
+    color: #94a3b8 !important;
+    margin-bottom: 0.6rem;
+}
+.legal-important {
+    background: rgba(248, 113, 113, 0.08);
+    border-left: 3px solid var(--error-color);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    color: #f1f5f9 !important;
+}
+.legal-back {
+    display: inline-block;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+.legal-back:hover {
+    text-decoration: underline;
+}
+.legal-footer-note {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.82rem !important;
+    color: #94a3b8 !important;
+}
+
+@media (max-width: 640px) {
+    .legal-container {
+        padding: 1.5rem 1.25rem;
+    }
+    .legal-container h1 {
+        font-size: 1.4rem;
+    }
 }
 
 /* Image Gallery Layout */

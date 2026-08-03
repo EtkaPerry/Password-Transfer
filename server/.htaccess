@@ -8,6 +8,32 @@
 
 Options -Indexes
 
+# This file is deployed alongside the web assets (see deploy.ps1), so it governs
+# index.html and script.js as well as api.php.
+<IfModule mod_headers.c>
+    # Strip the path and query string from every outgoing Referer. The AES key is
+    # meant to live in the URL fragment, which is never sent to a server; if a link
+    # rewriter drops it into the query string instead, this stops it travelling on
+    # in the Referer of every subsequent request.
+    Header always set Referrer-Policy "strict-origin"
+</IfModule>
+
+# NOTE ON ACCESS LOGS
+# A request that arrives as /?session=...&key=... has already put the key in the
+# request line before anything here runs, and .htaccess cannot suppress that:
+# LogFormat and CustomLog are server-config directives and are not permitted in
+# .htaccess. Keeping the key out of the logs has to be done outside this file:
+#
+#   * Apache vhost: log %m %U (method and path) instead of %r (the full request
+#     line), and drop %{Referer}i, or redact them in the log pipeline.
+#   * Cloudflare: HTTP request logs and Logpush record the full URI including the
+#     query string. Use a Logpush field list that excludes ClientRequestURI, or a
+#     transform rule, if these requests must not be retained there.
+#
+# The client-side mitigation is in web/script.js (relocateQueryStringSecrets):
+# the key is moved out of the query string immediately and the user is warned that
+# the transfer is compromised before any content is encrypted and uploaded.
+
 # Optional runtime configuration (replace values in production)
 # SetEnv CF_TURNSTILE_SITE_KEY "your_site_key"
 # SetEnv CF_TURNSTILE_SECRET_KEY "your_secret_key"

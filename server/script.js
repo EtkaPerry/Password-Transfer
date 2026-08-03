@@ -77,25 +77,96 @@ async function decryptData(encryptedBase64, keyHex) {
     return new TextDecoder().decode(plaintext);
 }
 
+// ==========================================
+// SESSION LINK HANDLING
+// ==========================================
+// The session id and the AES key travel in the URL *fragment* because browsers
+// never send a fragment to the server. A query string is the opposite: it goes out
+// in the request line, so it is written to the web server's access log, to
+// Cloudflare's logs, and to the Referer header of every later request from the
+// page. A key in a query string is a key the operator can read, which breaks the
+// zero-knowledge property the rest of the app depends on.
+//
+// Some in-app browsers still rewrite a scanned link's fragment into a query
+// string, so we keep accepting it — but we scrub it out of the URL immediately and
+// warn the user before anything is encrypted and uploaded.
+var sessionKeyCameFromQueryString = false;
+
 // Parse URL Fragment Hash for Session & Key
 function parseHash() {
-    // Some phone camera apps remove URL fragments when opening links from QR codes.
-    // Support both hash (#session=...) and query string (?session=...)
-    var searchParams = new URLSearchParams(window.location.search);
-    var session = searchParams.get('session');
-    var key = searchParams.get('key');
+    var hashParams = new URLSearchParams(window.location.hash.substring(1));
+    var session = hashParams.get('session');
+    var key = hashParams.get('key');
 
     if (session && key) {
         return { session: session, key: key };
     }
 
-    var hash = window.location.hash.substring(1);
-    var params = new URLSearchParams(hash);
+    // Fallback for the rewritten-link case. relocateQueryStringSecrets() normally
+    // empties this first; it only still holds anything if that could not run.
+    var searchParams = new URLSearchParams(window.location.search);
     return {
-        session: params.get('session'),
-        key: params.get('key')
+        session: searchParams.get('session'),
+        key: searchParams.get('key')
     };
 }
+
+/**
+ * Moves a session/key pair out of the query string and into the fragment.
+ * The page request carrying the key has already been logged by the time any script
+ * runs, so this cannot un-leak it. What it stops is the leakage that follows:
+ * Referer headers on later same-origin requests, the address bar, history,
+ * bookmarks, and anything the user screenshots or shares.
+ */
+function relocateQueryStringSecrets() {
+    var searchParams;
+    try {
+        searchParams = new URLSearchParams(window.location.search);
+    } catch (e) {
+        return;
+    }
+
+    if (!searchParams.has('session') && !searchParams.has('key')) {
+        return;
+    }
+
+    sessionKeyCameFromQueryString = true;
+
+    var session = searchParams.get('session');
+    var key = searchParams.get('key');
+
+    try {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('session');
+        url.searchParams.delete('key');
+        if (session && key && !url.hash) {
+            url.hash = 'session=' + encodeURIComponent(session) + '&key=' + encodeURIComponent(key);
+        }
+        history.replaceState(null, '', url.pathname + url.search + url.hash);
+    } catch (e) {
+        console.warn('Could not move the session key out of the query string:', e);
+    }
+}
+
+/**
+ * Drops the session id and key from the URL altogether, so a reload or a shared
+ * link cannot resume a finished or abandoned transfer.
+ */
+function clearSessionFromUrl() {
+    sessionKeyCameFromQueryString = false;
+    try {
+        var url = new URL(window.location.href);
+        url.searchParams.delete('session');
+        url.searchParams.delete('key');
+        url.hash = '';
+        history.replaceState(null, '', url.pathname + url.search);
+    } catch (e) {
+        try { window.location.hash = ''; } catch (e2) { /* ignore */ }
+    }
+}
+
+// Runs on load, before any other code reads or retransmits the URL.
+relocateQueryStringSecrets();
 
 function getTurnstileSiteKey() {
     if (appRuntimeConfig && appRuntimeConfig.turnstileSiteKey) {
@@ -269,7 +340,11 @@ function startApp() {
     // Check if we arrived via a scanned QR code (direct to Giver mode)
     var hashInfo = parseHash();
     if (hashInfo.session && hashInfo.key) {
-        renderGiverOptions(container, hashInfo.session, hashInfo.key);
+        if (sessionKeyCameFromQueryString) {
+            renderExposedKeyWarning(container, hashInfo.session, hashInfo.key);
+        } else {
+            renderGiverOptions(container, hashInfo.session, hashInfo.key);
+        }
         return;
     }
 
@@ -277,7 +352,8 @@ function startApp() {
     container.innerHTML = '<h1>Password Transfer</h1>\n'
         + '<p>Select your role below to get started.</p>\n'
         + '<button id="btnReceiver" style="margin-bottom: 1rem;">I am Receiver (PC)</button>\n'
-        + '<button id="btnGiver" class="secondary-btn">I am Giver (Phone)</button>\n';
+        + '<button id="btnGiver" class="secondary-btn">I am Giver (Phone)</button>\n'
+        + consentNoticeHtml();
 
     document.getElementById('btnReceiver').addEventListener('click', function() {
         renderReceiver(container);
@@ -288,13 +364,45 @@ function startApp() {
     });
 }
 
+/**
+ * Shown when the key arrived in the query string instead of the fragment. That key
+ * went to the server in the request line and is very likely sitting in an access
+ * log, so the operator could pair it with the stored ciphertext and read the
+ * transfer. The recovery is to scan the QR code still on the receiving screen,
+ * which always carries the key in the fragment.
+ * @param {string} session - Session id from the rewritten link.
+ * @param {string} key - Key from the rewritten link, already exposed to the server.
+ */
+function renderExposedKeyWarning(container, session, key) {
+    container.innerHTML = '<h1>This link is not private</h1>\n'
+        + '<div class="warning-panel">\n'
+        + '  <p>The app that opened this link moved the encryption key into the part of the address that <strong>is sent to the server</strong>, so it was almost certainly written to a server log on the way in.</p>\n'
+        + '</div>\n'
+        + '<p>Your content has not been sent yet. If you continue, anyone who can read those logs could decrypt this transfer &mdash; the usual guarantee that we cannot read your data does not hold for it.</p>\n'
+        + '<p>The receiving screen is still showing a QR code. Scanning it directly gives you a fresh key that never reaches the server.</p>\n'
+        + '<button id="btnRescan">Scan the QR code instead</button>\n'
+        + '<button id="btnContinueAnyway" class="secondary-btn">Continue with this link anyway</button>\n';
+
+    document.getElementById('btnRescan').addEventListener('click', function () {
+        clearSessionFromUrl();
+        renderGiverOptions(container);
+    });
+
+    document.getElementById('btnContinueAnyway').addEventListener('click', function () {
+        renderGiverOptions(container, session, key);
+    });
+}
+
 function renderGiverOptions(container, prefilledSession, prefilledKey) {
     container.innerHTML = '<h1>What to Send?</h1>\n'
         + '<p>Select the type of data you want to send.</p>\n'
         + '<button id="btnSendText" style="margin-bottom: 0.5rem;">1. Long Text</button>\n'
         + '<button id="btnSendPwd" style="margin-bottom: 0.5rem; margin-top: 0;">2. Password</button>\n'
         + '<button id="btnSendImg" style="margin-bottom: 0; margin-top: 0;">3. Images (Max 4)</button>\n'
-        + '<button id="btnBackToRole" class="secondary-btn" style="margin-top: 1.5rem;">Back</button>\n';
+        + '<button id="btnBackToRole" class="secondary-btn" style="margin-top: 1.5rem;">Back</button>\n'
+        // Arriving straight from a scanned QR skips the role screen, so the
+        // notice has to appear here too or that user never sees it.
+        + ((prefilledSession && prefilledKey) ? consentNoticeHtml() : '');
 
     document.getElementById('btnSendText').addEventListener('click', function() {
         renderGiverInput(container, 'text', prefilledSession, prefilledKey);
@@ -310,9 +418,9 @@ function renderGiverOptions(container, prefilledSession, prefilledKey) {
 
     document.getElementById('btnBackToRole').addEventListener('click', function () {
         if (prefilledSession || prefilledKey) {
-            // Clear hash so we can return to regular home screen
-            try { history.replaceState(null, '', window.location.pathname + window.location.search); } 
-            catch(e) { window.location.hash = ''; }
+            // Drop the whole session link, not just the hash: otherwise startApp()
+            // reads it back out of the query string and we never reach the home screen.
+            clearSessionFromUrl();
         }
         startApp();
     });
@@ -569,9 +677,8 @@ function sendDataToBackend(container, dataVal, dataType, session, key) {
             if (result && result.success) {
                 status.className = 'status-msg success';
                 status.innerText = 'Sent successfully! It will self-destruct from server. You can close this page.';
-                
-                try { history.replaceState(null, '', window.location.pathname + window.location.search); } 
-                catch(e) { window.location.hash = ''; }
+
+                clearSessionFromUrl();
 
                 setTimeout(function() {
                     startApp();
@@ -587,9 +694,10 @@ function sendDataToBackend(container, dataVal, dataType, session, key) {
         retryBtn.innerText = 'Try Again';
         retryBtn.style.marginTop = '1rem';
         retryBtn.onclick = function() {
-            var hashInfo = parseHash();
-            if (hashInfo.session && hashInfo.key) {
-                sendDataToBackend(container, dataVal, dataType, hashInfo.session, hashInfo.key);
+            // Reuse the values we were called with rather than re-reading the URL,
+            // which has since been scrubbed of the session link.
+            if (session && key) {
+                sendDataToBackend(container, dataVal, dataType, session, key);
             } else {
                 renderGiverCamera(container, dataVal, dataType);
             }
@@ -651,6 +759,7 @@ async function startReceiverSession(container, challengeToken) {
 
     function renderActiveQrCode() {
         var url = new URL(window.location.href);
+        url.search = ''; // never let the QR hand out a link with secrets in a query string
         url.hash = 'session=' + session + '&key=' + validKeys[0];
         currentScanUrl = url.href;
 
@@ -1140,6 +1249,19 @@ function initLicensePopup() {
     }
 }
 
+// ==========================================
+// TERMS CONSENT NOTICE
+// ==========================================
+// Rendered directly beneath the action buttons. Pressing a role button is the
+// user's affirmative agreement - see terms.html section 1. A privacy notice is
+// something we have to provide, not something you agree to, hence the wording.
+function consentNoticeHtml() {
+    return '<p class="consent-notice">By continuing you agree to the '
+        + '<a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>'
+        + ' and confirm you have read the '
+        + '<a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</p>';
+}
+
 // Start execution
 window.addEventListener('DOMContentLoaded', function () {
     loadRuntimeConfig();
@@ -1165,7 +1287,7 @@ function initCookieBanner() {
         var banner = document.createElement('div');
         banner.id = 'cookieBanner';
 
-        banner.innerHTML = '<p>We use minimal local storage to remember preferences. No analytics by default. <a href="/" id="cookiePrivacyLink" style="color:var(--primary-color);">Privacy</a></p>'
+        banner.innerHTML = '<p>We use minimal local storage to remember preferences. No analytics by default. <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color:var(--primary-color);">Privacy Policy</a></p>'
             + '<div class="cookie-actions">'
             + '<button id="acceptCookies">Accept</button>'
             + '<button id="dismissCookies" class="secondary-btn">Dismiss</button>'
@@ -1187,13 +1309,6 @@ function initCookieBanner() {
             banner.style.display = 'none';
         });
 
-        var pLink = document.getElementById('cookiePrivacyLink');
-        if (pLink) {
-            pLink.addEventListener('click', function (ev) {
-                ev.preventDefault();
-                alert('This app stores only ephemeral session data and your cookie consent. No tracking.');
-            });
-        }
     } catch (e) {
         console.warn('Cookie banner init failed', e);
     }

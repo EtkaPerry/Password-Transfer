@@ -9,6 +9,14 @@ if (in_array($origin, ALLOWED_ORIGINS, true)) {
 header('Content-Type: application/json');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
+// Never let a Referer carry a path or query string onward. A rewritten session
+// link can put the AES key in the query string, and this response must not be the
+// thing that forwards it anywhere else.
+header('Referrer-Policy: strict-origin');
+// Responses can contain ciphertext; keep them out of every cache, including
+// Cloudflare's.
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
 
 function ensureStorageDirectory($dir) {
     if (!is_dir($dir)) {

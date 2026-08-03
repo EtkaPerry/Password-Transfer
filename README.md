@@ -45,6 +45,18 @@ This project exists to make it easy and safe to transfer sensitive text (like pa
 - The sender (phone) scans the QR code, encrypts the payload locally with the `key` using AES, and posts the encrypted blob to the backend for the `session` identifier.
 - The receiver polls the backend for that `session`, retrieves the encrypted blob, and decrypts it locally using the `key`. The server never sees the unencrypted payload.
 
+### Why the key must stay in the fragment
+
+Browsers do not transmit a URL fragment, so a key in `#session=…&key=…` never reaches the server. A query string does travel in the request line, and would be recorded in the web server access log, in Cloudflare's request logs, and in the `Referer` header of every subsequent request from the page — enough for the operator to decrypt the transfer.
+
+Some in-app browsers rewrite a scanned link's fragment into a query string. The frontend handles that case rather than silently accepting it:
+
+- `relocateQueryStringSecrets()` in [`web/script.js`](web/script.js) moves the pair back into the fragment on load and rewrites the address, so nothing further leaks.
+- The user is shown a warning that the key already reached the server, and is offered a re-scan (which produces a fresh key) instead of continuing.
+- `Referrer-Policy: strict-origin` is set in `backend-php/.htaccess`, in `api.php`, and as a `<meta name="referrer">` in the HTML, so no `Referer` ever carries a path or query string.
+
+The initial request cannot be un-logged by any of this. Suppressing it requires server-side changes documented in [`backend-php/.htaccess`](backend-php/.htaccess) — `.htaccess` itself cannot alter Apache's log format.
+
 ## Frontend Libraries
 
 This project uses the following JavaScript libraries (included in `web/vendor/`):
@@ -56,8 +68,6 @@ This project uses the following JavaScript libraries (included in `web/vendor/`)
 ## Repository
 
 Repository: [https://github.com/EtkaPerry/Password-Transfer](https://github.com/EtkaPerry/Password-Transfer)
-
-> **Note:** This public repository is an automated mirror of a private repository. All commits and updates are synced automatically via a `@github-actions[bot]`. While the bot may appear as the primary contributor in the commit history, all development and code ownership belong to the repository owner.
 
 ## License
 
@@ -72,9 +82,26 @@ Key Points:
 
 See the [LICENSE](LICENSE) file for the full text.
 
+## Terms of Service & Privacy Policy
+
+The hosted service at [etka.co.uk/password](https://etka.co.uk/password/) is governed by two documents:
+
+- [`web/terms.html`](web/terms.html) — acceptable use, the limits of the encryption guarantee, warranties and liability. Governed by the laws of England and Wales, with a carve-out preserving EEA/UK consumers' mandatory local rights.
+- [`web/privacy.html`](web/privacy.html) — the UK/EU GDPR Article 13 notice: what is processed, legal bases, retention, recipients and data subject rights.
+
+`consentNoticeHtml()` in [`web/script.js`](web/script.js) renders "By continuing you agree to the Terms of Service and confirm you have read the Privacy Policy" directly beneath the role buttons, so pressing a button is the act of agreement. It appears on the role-choice screen and, because a scanned QR link skips that screen, on the giver options screen when the session arrives prefilled.
+
+The wording is deliberate: terms are a contract you accept, a privacy notice is information the controller must *provide*. Consent is not the legal basis for any processing here, so asking users to "agree" to the privacy policy would misstate the position.
+
+Both documents cover **both** roles. The receiver runs the Cloudflare Turnstile challenge, so it is the receiver's IP that reaches a third party — the notice is not a giver-side concern.
+
+These documents are **not** part of the software licence. If you self-host, you are the operator and data controller of your own instance, so you need your own versions: the sync workflow strips the operator's domain and contact address out of the published release, so both files ship as templates full of `your-domain.example`. Replace the operator name, contact address and governing law before you put an instance in front of real users.
+
+When you change them materially, bump the version number and effective date at the top of the file you changed.
+
 ## Cookies & Privacy
 
-This web UI uses minimal local storage to remember preferences (for example, cookie consent). The backend stores short-lived encrypted blobs and is designed to delete them after retrieval or expiry. No analytics or third-party tracking is included by default.
+This web UI uses minimal local storage to remember preferences (a single cookie-consent flag). The backend stores short-lived encrypted blobs and is designed to delete them after retrieval or expiry. IP addresses are processed transiently for rate limiting and are passed to Cloudflare Turnstile for bot protection. No analytics or third-party tracking is included by default. See [`web/privacy.html`](web/privacy.html) for the full description.
 
 ## Contributing
 
